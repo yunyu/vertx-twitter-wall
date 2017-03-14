@@ -1,0 +1,15 @@
+.settings
+.project
+.classpath
+.vertx
+bin
+lib
+build
+.idea
+.gradle
+*.iml
+*.ipr
+*.iws
+target
+/dependency-reduced-pom.xml
+config.properties

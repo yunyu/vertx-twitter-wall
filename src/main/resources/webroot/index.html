@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vert.x Twitter Wall</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/picnic/6.3.2/picnic.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.2/sockjs.min.js"></script>
+    <style>
+        body {
+            padding: 15px;
+        }
+
+        p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+<input id="tag" type="text" placeholder="Hashtag to watch (e.g. blizzard2017)" style="width: 400px">
+<button id="set-tag">Set hashtag</button>
+<div id="tweets" style="overflow-y: scroll; height: 600px; border: 1px solid #aaa"></div>
+<script>
+    var sock = new SockJS(window.location.origin + '/sock');
+    sock.onmessage = function(e) {
+        tweetsDiv.innerHTML = "<p>" + e.data + "</p>" + tweetsDiv.innerHTML;
+    };
+
+    var tagInput = document.getElementById("tag");
+    var setTagBtn = document.getElementById("set-tag");
+
+    tagInput.addEventListener("keyup", function (event) {
+        event.preventDefault();
+        if (event.keyCode == 13) {
+            setTagBtn.click();
+        }
+    });
+
+    var tweetsDiv = document.getElementById("tweets");
+
+    var lastTag = "";
+    setTagBtn.onclick = function () {
+        var newTag = tagInput.value;
+        if (newTag.length == 0 || newTag == lastTag) {
+            tagInput.value = lastTag;
+            return;
+        }
+        if (lastTag.length > 0) {
+            sock.send("UNREG " + lastTag);
+        }
+        sock.send("REG " + newTag);
+        lastTag = newTag;
+        tweetsDiv.innerHTML = "";
+    };
+</script>
+</body>
+</html>
