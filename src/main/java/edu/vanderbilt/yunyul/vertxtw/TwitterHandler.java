@@ -65,7 +65,10 @@ public class TwitterHandler {
     }
 
     private void updateFilters() {
-        twitterStream.filter(trackedTags.toArray(new String[trackedTags.size()]));
+        int tags = trackedTags.size();
+        if (tags > 0) {
+            twitterStream.filter(trackedTags.toArray(new String[tags]));
+        }
     }
 
     /**
@@ -73,6 +76,7 @@ public class TwitterHandler {
      * @param tag Hashtag to track
      */
     public void trackTag(String tag) {
+        if (tag.length() == 0) throw new IllegalArgumentException();
         if (trackedTags.add(tag)) {
             updateFilters();
         }
