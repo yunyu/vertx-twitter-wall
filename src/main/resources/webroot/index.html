@@ -121,7 +121,7 @@
     var sock = new SockJS(window.location.origin + '/sock');
     sock.onmessage = function (e) {
         app.tweets.unshift(JSON.parse(e.data));
-        if (app.tweets.length > 500) app.tweets.pop();
+        if (app.tweets.length > 150) app.tweets.pop();
     };
 
     var tagInput = document.getElementById("tag");
