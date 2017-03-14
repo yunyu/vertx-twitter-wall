@@ -2,6 +2,7 @@ Vert.x Twitter Wall
 ==
 
 ![](https://i.imgur.com/HMrttSg.png)
+[Video of it working](https://files.catbox.moe/8ldaet.mp4)
 
 Twitter Wall project for Vert.x. Streams tweets using Twitter4J.
 

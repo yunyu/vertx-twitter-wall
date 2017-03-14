@@ -10,6 +10,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static edu.vanderbilt.yunyul.vertxtw.TwitterWallBootstrap.log;
 
+/**
+ * Class that sets up the Twitter4J Streaming API and broadcasts it to the TweetBroadcaster
+ */
 public class TwitterHandler {
     @Setter
     private TweetBroadcaster broadcaster;
@@ -65,12 +68,20 @@ public class TwitterHandler {
         twitterStream.filter(trackedTags.toArray(new String[trackedTags.size()]));
     }
 
+    /**
+     * Tracks the provided hashtag, if it isn't already tracked
+     * @param tag Hashtag to track
+     */
     public void trackTag(String tag) {
         if (trackedTags.add(tag)) {
             updateFilters();
         }
     }
 
+    /**
+     * Untracks the provided hashtag
+     * @param tag Hashtag to untrack
+     */
     public void untrackTag(String tag) {
         if (trackedTags.remove(tag)) {
             updateFilters();

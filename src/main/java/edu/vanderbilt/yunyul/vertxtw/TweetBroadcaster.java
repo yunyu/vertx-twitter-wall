@@ -34,17 +34,20 @@ public class TweetBroadcaster {
                 String cmd = parts[0];
                 String tag = parts[1];
 
+                // Strip leading hashtag
                 if (tag.startsWith("#")) {
                     tag = tag.substring(1);
                 }
 
                 switch (cmd.toUpperCase()) {
+                    // Registration command
                     case "REG":
                         if (tag.length() > 0) {
                             clients.put(tag, client);
                             twitterHandler.trackTag(tag);
                         }
                         break;
+                    // Unregister command
                     case "UNREG":
                         removeClientFromTag(client, tag);
                 }
@@ -57,6 +60,7 @@ public class TweetBroadcaster {
         router.route("/sock/*").handler(sockJSHandler);
     }
 
+
     private void removeClientFromTag(String client, String tag) {
         clients.remove(tag, client);
         if (!clients.containsKey(tag)) {
@@ -64,6 +68,11 @@ public class TweetBroadcaster {
         }
     }
 
+    /**
+     * Broadcasts the specified message to all clients associated with the specified tag
+     * @param tag Tag to broadcast the message to
+     * @param text The message to send
+     */
     public void broadcast(String tag, String text) {
         clients.get(tag).forEach(client -> vertx.eventBus().publish(client, Buffer.buffer(text)));
     }

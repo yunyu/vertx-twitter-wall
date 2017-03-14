@@ -21,6 +21,8 @@ public class TwitterWallBootstrap {
     public static void main(String[] args) throws IOException {
         HttpServer httpServer = vertx.createHttpServer();
         Router router = Router.router(vertx);
+
+        // Setup routes
         TweetBroadcaster broadcaster = new TweetBroadcaster(router, vertx);
         router.route().handler(StaticHandler.create());
         router.route().failureHandler(ErrorHandler.create());
@@ -35,6 +37,8 @@ public class TwitterWallBootstrap {
                     properties.getProperty("accessToken"),
                     properties.getProperty("accessTokenSecret"));
             twitterHandler.setBroadcaster(broadcaster);
+
+            // Deal with circular dependency
             broadcaster.setTwitterHandler(twitterHandler);
         }
 
