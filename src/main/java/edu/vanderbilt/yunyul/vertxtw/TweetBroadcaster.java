@@ -31,27 +31,27 @@ public class TweetBroadcaster {
                 String[] parts = msg.split(" ");
 
                 String cmd = parts[0];
-                String tag = parts[1];
+                String channel = parts[1].toLowerCase();
 
                 // Strip leading hashtag
-                if (tag.startsWith("#")) {
-                    tag = tag.substring(1);
+                if (channel.startsWith("#")) {
+                    channel = channel.substring(1);
                 }
 
                 switch (cmd.toUpperCase()) {
                     // Registration command
                     case "REG":
-                        if (tag.length() > 0 && tag.length() <= 120) {
+                        if (channel.length() > 0 && channel.length() <= 120) {
                             synchronized (lock) {
-                                channels.put(tag, sock);
-                                clients.put(sock, tag);
-                                twitterHandler.trackTag(tag);
+                                channels.put(channel, sock);
+                                clients.put(sock, channel);
+                                twitterHandler.trackTag(channel);
                             }
                         }
                         break;
                     // Unregister command
                     case "UNREG":
-                        removeClientFromTag(sock, tag);
+                        removeClientFromTag(sock, channel);
                 }
 
             });
@@ -69,13 +69,13 @@ public class TweetBroadcaster {
     }
 
 
-    private void removeClientFromTag(SockJSSocket sock, String tag) {
+    private void removeClientFromTag(SockJSSocket sock, String channel) {
         synchronized (lock) {
-            channels.remove(tag, sock);
-            clients.remove(sock, tag);
+            channels.remove(channel, sock);
+            clients.remove(sock, channel);
         }
-        if (!channels.containsKey(tag)) {
-            twitterHandler.untrackTag(tag);
+        if (!channels.containsKey(channel)) {
+            twitterHandler.untrackTag(channel);
         }
     }
 
@@ -85,6 +85,6 @@ public class TweetBroadcaster {
      * @param text The message to send
      */
     public void broadcast(String tag, String text) {
-        channels.get(tag).forEach(client -> client.write(Buffer.buffer(text)));
+        channels.get(tag.toLowerCase()).forEach(client -> client.write(Buffer.buffer(text)));
     }
 }

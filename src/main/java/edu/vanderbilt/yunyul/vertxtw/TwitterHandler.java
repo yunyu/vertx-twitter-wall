@@ -92,7 +92,7 @@ public class TwitterHandler {
      */
     public void trackTag(String tag) {
         if (tag.length() == 0) throw new IllegalArgumentException();
-        if (trackedTags.add(tag)) {
+        if (trackedTags.add(tag.toLowerCase())) {
             filterUpdateQueued = true;
         }
     }
@@ -103,7 +103,7 @@ public class TwitterHandler {
      * @param tag Hashtag to untrack
      */
     public void untrackTag(String tag) {
-        if (trackedTags.remove(tag)) {
+        if (trackedTags.remove(tag.toLowerCase())) {
             filterUpdateQueued = true;
         }
     }
