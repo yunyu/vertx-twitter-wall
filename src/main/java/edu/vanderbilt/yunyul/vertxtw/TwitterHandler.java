@@ -110,9 +110,9 @@ public class TwitterHandler {
         private boolean isRetweet;
 
         public SimpleTweet(Status status) {
-            this.text = escaper.escape(status.getText());
+            this.text = status.getText();
             this.time = status.getCreatedAt().getTime();
-            this.username = escaper.escape(status.getUser().getScreenName());
+            this.username = status.getUser().getScreenName();
             this.userProfilePicture = status.getUser().getMiniProfileImageURLHttps();
             this.isRetweet = status.isRetweet();
         }
