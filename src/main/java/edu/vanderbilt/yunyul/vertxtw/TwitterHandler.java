@@ -11,6 +11,8 @@ import twitter4j.conf.ConfigurationBuilder;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static edu.vanderbilt.yunyul.vertxtw.TwitterWallBootstrap.log;
 
@@ -25,6 +27,8 @@ public class TwitterHandler {
     private static final Escaper escaper = HtmlEscapers.htmlEscaper();
     private final TwitterStream twitterStream;
     private Set<String> trackedTags = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+
+    private boolean filterUpdateQueued = false;
 
     public TwitterHandler(String consumerKey, String consumerSecret, String accessToken, String accessTokenSecret) {
         log("Initializing Twitter handler...");
@@ -68,13 +72,17 @@ public class TwitterHandler {
 
             }
         });
-    }
 
-    private void updateFilters() {
-        int tags = trackedTags.size();
-        if (tags > 0) {
-            twitterStream.filter(trackedTags.toArray(new String[tags]));
-        }
+        // Rate-limit filter updates
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            if (filterUpdateQueued) {
+                int tags = trackedTags.size();
+                if (tags > 0) {
+                    twitterStream.filter(trackedTags.toArray(new String[tags]));
+                }
+                filterUpdateQueued = false;
+            }
+        }, 0, 1, TimeUnit.SECONDS);
     }
 
     /**
@@ -85,7 +93,7 @@ public class TwitterHandler {
     public void trackTag(String tag) {
         if (tag.length() == 0) throw new IllegalArgumentException();
         if (trackedTags.add(tag)) {
-            updateFilters();
+            filterUpdateQueued = true;
         }
     }
 
@@ -96,7 +104,7 @@ public class TwitterHandler {
      */
     public void untrackTag(String tag) {
         if (trackedTags.remove(tag)) {
-            updateFilters();
+            filterUpdateQueued = true;
         }
     }
 
