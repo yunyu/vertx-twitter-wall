@@ -4,6 +4,7 @@
     <title>Vert.x Twitter Wall</title>
     <link rel="stylesheet" href="https://cdn.rawgit.com/Chalarangelo/mini.css/v2.1.0/dist/mini-default.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.2/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.2.4/vue.min.js"></script>
     <style>
         header {
             padding: 8px;
@@ -33,39 +34,38 @@
     </style>
 </head>
 <body>
-<header>
-    <div class="logo" id="status">Not tracking</div>
-    <div class="input-group tag-bar">
-        <input id="tag" type="text" placeholder="e.g. trump">
-        <button id="set-tag" class="primary">Track hashtag</button>
+<div id="app">
+    <header>
+        <div v-if="trackedTag" class="logo" id="status">
+            Tracking #{{ trackedTag }}
+        </div>
+        <div class="input-group tag-bar">
+            <input id="tag" type="text" placeholder="e.g. trump">
+            <button id="set-tag" class="primary">Track hashtag</button>
+        </div>
+    </header>
+    <div class="tweet-container">
+        <div id="tweets" class="row">
+            <div class="card" v-for="tweet in tweets">
+                <div class="section tweet">
+                    <p>{{ tweet.text }}</p>
+                </div>
+            </div>
+        </div>
     </div>
-</header>
-<div class="tweet-container">
-    <div id="tweets" class="row"></div>
 </div>
 <script>
-    var entityMap = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;',
-        '/': '&#x2F;',
-        '`': '&#x60;',
-        '=': '&#x3D;'
-    };
-
-    function escapeHtml(string) {
-        return String(string).replace(/[&<>"'`=\/]/g, function (s) {
-            return entityMap[s];
-        });
-    }
+    var app = new Vue({
+        el: "#app",
+        data: {
+            trackedTag: null,
+            tweets: []
+        }
+    });
 
     var sock = new SockJS(window.location.origin + '/sock');
     sock.onmessage = function (e) {
-        var simpleTweet = JSON.parse(e.data);
-        tweetsDiv.innerHTML = '<div class="card"><div class="section tweet"><p>' + simpleTweet.text + "</p></div></div>"
-            + tweetsDiv.innerHTML;
+        app.tweets.unshift(JSON.parse(e.data));
     };
 
     var tagInput = document.getElementById("tag");
@@ -73,27 +73,21 @@
 
     tagInput.addEventListener("keyup", function (event) {
         event.preventDefault();
-        if (event.keyCode == 13) {
-            setTagBtn.click();
-        }
+        if (event.keyCode == 13) setTagBtn.click();
     });
 
-    var tweetsDiv = document.getElementById("tweets");
-
-    var lastTag = "";
     setTagBtn.onclick = function () {
         var newTag = tagInput.value;
-        if (newTag.length == 0 || newTag == lastTag) {
-            tagInput.value = lastTag;
+        if (newTag.length == 0 || newTag.length > 120 || newTag == app.trackedTag) {
+            tagInput.value = app.trackedTag;
             return;
         }
-        if (lastTag.length > 0) {
-            sock.send("UNREG " + lastTag);
+        if (app.trackedTag) {
+            sock.send("UNREG " + app.trackedTag);
         }
         sock.send("REG " + newTag);
-        lastTag = newTag;
-        document.getElementById("status").innerHTML = 'Tracking #' + escapeHtml(lastTag);
-        tweetsDiv.innerHTML = "";
+        app.trackedTag = newTag; // Vue escapes HTML
+        app.tweets = [];
     };
 </script>
 </body>
