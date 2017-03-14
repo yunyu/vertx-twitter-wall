@@ -1,5 +1,10 @@
 package edu.vanderbilt.yunyul.vertxtw;
 
+import com.google.common.escape.Escaper;
+import com.google.common.escape.Escapers;
+import com.google.common.html.HtmlEscapers;
+import com.google.gson.Gson;
+import lombok.Data;
 import lombok.Setter;
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
@@ -17,7 +22,9 @@ public class TwitterHandler {
     @Setter
     private TweetBroadcaster broadcaster;
 
-    private TwitterStream twitterStream;
+    private static final Gson gson = new Gson();
+    private static final Escaper escaper = HtmlEscapers.htmlEscaper();
+    private final TwitterStream twitterStream;
     private Set<String> trackedTags = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
     public TwitterHandler(String consumerKey, String consumerSecret, String accessToken, String accessTokenSecret) {
@@ -33,7 +40,7 @@ public class TwitterHandler {
             @Override
             public void onStatus(Status status) {
                 for (HashtagEntity e : status.getHashtagEntities()) {
-                    broadcaster.broadcast(e.getText(), status.getText());
+                    broadcaster.broadcast(e.getText(), gson.toJson(new SimpleTweet(status)));
                 }
             }
 
@@ -73,6 +80,7 @@ public class TwitterHandler {
 
     /**
      * Tracks the provided hashtag, if it isn't already tracked
+     *
      * @param tag Hashtag to track
      */
     public void trackTag(String tag) {
@@ -84,11 +92,29 @@ public class TwitterHandler {
 
     /**
      * Untracks the provided hashtag
+     *
      * @param tag Hashtag to untrack
      */
     public void untrackTag(String tag) {
         if (trackedTags.remove(tag)) {
             updateFilters();
+        }
+    }
+
+    @Data
+    public static class SimpleTweet {
+        private String text;
+        private long time;
+        private String username;
+        private String userProfilePicture;
+        private boolean isRetweet;
+
+        public SimpleTweet(Status status) {
+            this.text = escaper.escape(status.getText());
+            this.time = status.getCreatedAt().getTime();
+            this.username = escaper.escape(status.getUser().getScreenName());
+            this.userProfilePicture = status.getUser().getMiniProfileImageURLHttps();
+            this.isRetweet = status.isRetweet();
         }
     }
 }

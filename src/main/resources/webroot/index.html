@@ -63,7 +63,8 @@
 
     var sock = new SockJS(window.location.origin + '/sock');
     sock.onmessage = function (e) {
-        tweetsDiv.innerHTML = '<div class="card"><div class="section tweet"><p>' + e.data + "</p></div></div>"
+        var simpleTweet = JSON.parse(e.data);
+        tweetsDiv.innerHTML = '<div class="card"><div class="section tweet"><p>' + simpleTweet.text + "</p></div></div>"
             + tweetsDiv.innerHTML;
     };
 
