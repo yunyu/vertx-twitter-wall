@@ -2,26 +2,69 @@
 <html>
 <head>
     <title>Vert.x Twitter Wall</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/picnic/6.3.2/picnic.min.css" />
+    <link rel="stylesheet" href="https://cdn.rawgit.com/Chalarangelo/mini.css/v2.1.0/dist/mini-default.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.2/sockjs.min.js"></script>
     <style>
-        body {
-            padding: 15px;
+        header {
+            padding: 8px;
         }
 
-        p {
-            margin: 0;
+        #status {
+            display: inline-block;
+        }
+
+        .card > .section.tweet {
+            height: 165px;
+        }
+
+        .card > .section.tweet > p {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            margin: 4px;
+        }
+
+        .tag-bar {
+            float: right;
+        }
+
+        .tweet-container {
+            margin-top: 8px;
         }
     </style>
 </head>
 <body>
-<input id="tag" type="text" placeholder="Hashtag to watch (e.g. blizzard2017)" style="width: 400px">
-<button id="set-tag">Set hashtag</button>
-<div id="tweets" style="overflow-y: scroll; height: 600px; border: 1px solid #aaa"></div>
+<header>
+    <div class="logo" id="status">Not tracking</div>
+    <div class="input-group tag-bar">
+        <input id="tag" type="text" placeholder="e.g. trump">
+        <button id="set-tag" class="primary">Track hashtag</button>
+    </div>
+</header>
+<div class="tweet-container">
+    <div id="tweets" class="row"></div>
+</div>
 <script>
+    var entityMap = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+        '/': '&#x2F;',
+        '`': '&#x60;',
+        '=': '&#x3D;'
+    };
+
+    function escapeHtml(string) {
+        return String(string).replace(/[&<>"'`=\/]/g, function (s) {
+            return entityMap[s];
+        });
+    }
+
     var sock = new SockJS(window.location.origin + '/sock');
-    sock.onmessage = function(e) {
-        tweetsDiv.innerHTML = "<p>" + e.data + "</p>" + tweetsDiv.innerHTML;
+    sock.onmessage = function (e) {
+        tweetsDiv.innerHTML = '<div class="card"><div class="section tweet"><p>' + e.data + "</p></div></div>"
+            + tweetsDiv.innerHTML;
     };
 
     var tagInput = document.getElementById("tag");
@@ -48,6 +91,7 @@
         }
         sock.send("REG " + newTag);
         lastTag = newTag;
+        document.getElementById("status").innerHTML = 'Tracking #' + escapeHtml(lastTag);
         tweetsDiv.innerHTML = "";
     };
 </script>
