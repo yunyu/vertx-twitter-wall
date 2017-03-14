@@ -41,6 +41,28 @@
         .tweet-container {
             margin-top: 68px;
         }
+
+        .time {
+            float: right;
+        }
+
+        .info > span, .info > img {
+            vertical-align: text-bottom;
+        }
+
+        .avatar {
+            height: 24px;
+            width: 24px;
+            border-radius: 12px;
+        }
+
+        .username {
+            font-weight: bold;
+        }
+
+        .time {
+            color: #aaa;
+        }
     </style>
 </head>
 <body>
@@ -60,7 +82,9 @@
                     <p>{{ tweet.text }}</p>
                 </div>
                 <div class="section info">
-                    <p>@{{ tweet.username }}</p>
+                    <img v-bind:src="tweet.userProfilePicture" class="avatar"/>
+                    <span class="username">@{{ tweet.username }}</span>
+                    <span class="time">{{ tweet.time | formatDate }}</span>
                 </div>
             </div>
         </div>
@@ -73,6 +97,17 @@
             trackedTag: null,
             tweets: []
         }
+    });
+
+    Vue.filter('formatDate', function (timestamp) {
+        var date = new Date(timestamp);
+        var hours = date.getHours();
+        var minutes = date.getMinutes();
+        var ampm = hours >= 12 ? 'pm' : 'am';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        minutes = minutes < 10 ? '0'+minutes : minutes;
+        return hours + ':' + minutes + ' ' + ampm;
     });
 
     var sock = new SockJS(window.location.origin + '/sock');
