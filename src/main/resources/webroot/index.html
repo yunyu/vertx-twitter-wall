@@ -23,13 +23,19 @@
         .card {
             margin: 2px 7px 14px;
             background: #fff;
+            text-decoration: none;
+            color: #000;
+        }
+
+        .card:visited {
+            color: #000;
         }
 
         .card > .section.tweet {
             height: 165px;
         }
 
-        .card > .section.tweet > p {
+        .card > .section.tweet p {
             word-wrap: break-word;
             overflow-wrap: break-word;
             margin: 4px;
@@ -72,22 +78,23 @@
         <div v-if="trackedTag" class="logo">Tracking #{{ trackedTag }}</div>
         <div v-else class="logo">Not tracking</div>
         <div class="input-group tag-bar">
-            <input id="tag" type="text" placeholder="e.g. trump">
+            <input id="tag" type="text" placeholder="e.g. resist">
             <button id="set-tag" class="primary">Track hashtag</button>
         </div>
     </header>
     <div class="tweet-container">
         <div id="tweets" class="row">
-            <div class="card" v-for="tweet in tweets">
-                <div class="section tweet">
-                    <p>{{ tweet.text }}</p>
+            <a v-bind:href="'https://twitter.com/' + tweet.originalUsername + '/status/' + tweet.id"
+               v-for="tweet in tweets" target="_blank" class="card">
+                    <div class="section tweet">
+                        <p>{{ tweet.text }}</p>
+                    </div>
+                    <div class="section info">
+                        <img v-bind:src="tweet.userProfilePicture" class="avatar"/>
+                        <span class="username">@{{ tweet.username }}</span>
+                        <span class="time">{{ tweet.time | formatDate }}</span>
                 </div>
-                <div class="section info">
-                    <img v-bind:src="tweet.userProfilePicture" class="avatar"/>
-                    <span class="username">@{{ tweet.username }}</span>
-                    <span class="time">{{ tweet.time | formatDate }}</span>
-                </div>
-            </div>
+            </a>
         </div>
     </div>
 </div>
@@ -107,7 +114,7 @@
         var ampm = hours >= 12 ? 'pm' : 'am';
         hours = hours % 12;
         hours = hours ? hours : 12;
-        minutes = minutes < 10 ? '0'+minutes : minutes;
+        minutes = minutes < 10 ? '0' + minutes : minutes;
         return hours + ':' + minutes + ' ' + ampm;
     });
 

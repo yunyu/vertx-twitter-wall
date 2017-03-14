@@ -115,6 +115,9 @@ public class TwitterHandler {
         private String username;
         private String userProfilePicture;
         private boolean isRetweet;
+        private String originalUsername;
+        // Javascript doesn't support 64-bit longs
+        private String id;
 
         public SimpleTweet(Status status) {
             this.text = status.getText();
@@ -122,6 +125,13 @@ public class TwitterHandler {
             this.username = status.getUser().getScreenName();
             this.userProfilePicture = status.getUser().getMiniProfileImageURLHttps();
             this.isRetweet = status.isRetweet();
+            if (this.isRetweet) {
+                this.originalUsername = status.getRetweetedStatus().getUser().getScreenName();
+                this.id = Long.toString(status.getRetweetedStatus().getId());
+            } else {
+                this.originalUsername = this.username;
+                this.id = Long.toString(status.getId());
+            }
         }
     }
 }
