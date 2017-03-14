@@ -9,6 +9,11 @@
     <style>
         header {
             padding: 8px;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            right: 0;
+            top: 0;
         }
 
         .logo {
@@ -34,7 +39,7 @@
         }
 
         .tweet-container {
-            margin-top: 8px;
+            margin-top: 68px;
         }
     </style>
 </head>
@@ -73,6 +78,7 @@
     var sock = new SockJS(window.location.origin + '/sock');
     sock.onmessage = function (e) {
         app.tweets.unshift(JSON.parse(e.data));
+        if (app.tweets.length > 500) app.tweets.pop();
     };
 
     var tagInput = document.getElementById("tag");

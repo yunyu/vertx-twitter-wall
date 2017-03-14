@@ -42,7 +42,7 @@ public class TweetBroadcaster {
                 switch (cmd.toUpperCase()) {
                     // Registration command
                     case "REG":
-                        if (tag.length() > 0) {
+                        if (tag.length() > 0 && tag.length() <= 120) {
                             clients.put(tag, client);
                             twitterHandler.trackTag(tag);
                         }
