@@ -42,6 +42,7 @@ public class TwitterWallBootstrap {
             broadcaster.setTwitterHandler(twitterHandler);
         }
 
+        logger.info("Starting webserver...");
         httpServer.requestHandler(router::accept).listen(8080);
     }
 }

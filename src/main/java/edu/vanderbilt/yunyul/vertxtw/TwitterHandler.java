@@ -1,7 +1,6 @@
 package edu.vanderbilt.yunyul.vertxtw;
 
 import com.google.common.escape.Escaper;
-import com.google.common.escape.Escapers;
 import com.google.common.html.HtmlEscapers;
 import com.google.gson.Gson;
 import lombok.Data;

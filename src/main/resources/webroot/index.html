@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Vert.x Twitter Wall</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdn.rawgit.com/Chalarangelo/mini.css/v2.1.0/dist/mini-default.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.2/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.2.4/vue.min.js"></script>
@@ -10,8 +11,12 @@
             padding: 8px;
         }
 
-        #status {
+        .logo {
             display: inline-block;
+        }
+
+        .card {
+            margin: 2px 7px 14px;
         }
 
         .card > .section.tweet {
@@ -36,7 +41,8 @@
 <body>
 <div id="app">
     <header>
-        <div class="logo" id="status">{{ displayedTag }}</div>
+        <div v-if="trackedTag" class="logo">Tracking #{{ trackedTag }}</div>
+        <div v-else class="logo">Not tracking</div>
         <div class="input-group tag-bar">
             <input id="tag" type="text" placeholder="e.g. trump">
             <button id="set-tag" class="primary">Track hashtag</button>
@@ -48,6 +54,9 @@
                 <div class="section tweet">
                     <p>{{ tweet.text }}</p>
                 </div>
+                <div class="section info">
+                    <p>@{{ tweet.username }}</p>
+                </div>
             </div>
         </div>
     </div>
@@ -56,7 +65,7 @@
     var app = new Vue({
         el: "#app",
         data: {
-            displayedTag: "Not tracking",
+            trackedTag: null,
             tweets: []
         }
     });
@@ -74,19 +83,17 @@
         if (event.keyCode == 13) setTagBtn.click();
     });
 
-    var trackedTag = "";
     setTagBtn.onclick = function () {
         var newTag = tagInput.value;
-        if (newTag.length == 0 || newTag.length > 120 || newTag == trackedTag) {
-            tagInput.value = trackedTag;
+        if (newTag.length == 0 || newTag.length > 120 || newTag == app.trackedTag) {
+            tagInput.value = app.trackedTag;
             return;
         }
-        if (trackedTag) {
-            sock.send("UNREG " + trackedTag);
+        if (app.trackedTag) {
+            sock.send("UNREG " + app.trackedTag);
         }
         sock.send("REG " + newTag);
-        trackedTag = newTag;
-        app.displayedTag = "Tracking #" + newTag;  // Vue escapes HTML
+        app.trackedTag = newTag;
         app.tweets = [];
     };
 </script>
