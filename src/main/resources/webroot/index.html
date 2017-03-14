@@ -8,16 +8,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.2.4/vue.min.js"></script>
     <style>
         header {
-            padding: 8px;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            right: 0;
-            top: 0;
+            height: auto;
         }
 
-        .logo {
+         .tracked-tag {
+            font-size: 1.25em;
             display: inline-block;
+            line-height: 2em;
+            margin: 2px;
         }
 
         .card {
@@ -46,7 +44,7 @@
         }
 
         .tweet-container {
-            margin-top: 68px;
+            margin-top: 8px;
         }
 
         .time {
@@ -74,9 +72,9 @@
 </head>
 <body>
 <div id="app">
-    <header>
-        <div v-if="trackedTag" class="logo">Tracking #{{ trackedTag }}</div>
-        <div v-else class="logo">Not tracking</div>
+    <header class="sticky">
+        <div v-if="trackedTag" class="tracked-tag">Tracking #{{ trackedTag }}</div>
+        <div v-else class="tracked-tag">Not tracking</div>
         <div class="input-group tag-bar">
             <input id="tag" type="text" placeholder="e.g. resist">
             <button id="set-tag" class="primary">Track hashtag</button>
