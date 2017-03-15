@@ -45,8 +45,8 @@ public class TweetBroadcaster {
                             synchronized (lock) {
                                 channels.put(channel, sock);
                                 clients.put(sock, channel);
-                                twitterHandler.trackTag(channel);
                             }
+                            twitterHandler.trackTag(channel);
                         }
                         break;
                     // Unregister command
