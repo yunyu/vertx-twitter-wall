@@ -31,6 +31,10 @@
             }
         }
 
+        #tweets {
+            justify-content: center;
+        }
+
         .card {
             margin: 2px 7px 14px;
             background: #fff;
@@ -50,6 +54,13 @@
             word-wrap: break-word;
             overflow-wrap: break-word;
             margin: 4px;
+        }
+
+        .invisible {
+            height: 0;
+            margin: 0 8px;
+            box-shadow: none;
+            border: none;
         }
 
         .tag-bar {
@@ -106,6 +117,7 @@
                         <span class="time">{{ tweet.time | formatDate }}</span>
                 </div>
             </a>
+            <div v-for="n in 10" class="card invisible"></div>
         </div>
     </div>
 </div>
