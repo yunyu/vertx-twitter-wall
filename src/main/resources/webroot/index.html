@@ -150,7 +150,7 @@
     var sock = new SockJS(window.location.origin + '/sock');
     sock.onmessage = function (e) {
         var tweet = JSON.parse(e.data);
-        tweet.text = Autolinker.link(tweet.text);
+        tweet.text = Autolinker.link(tweet.text, {mention: "twitter", hashtag: "twitter"});
         app.tweets.unshift(tweet);
         if (app.tweets.length > 150) app.tweets.pop();
     };
