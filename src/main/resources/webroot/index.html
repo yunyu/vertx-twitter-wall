@@ -164,8 +164,11 @@
     });
 
     setTagBtn.onclick = function () {
+        if (tagInput.value.startsWith("#")) {
+            tagInput.value = tagInput.value.substr(1);
+        }
         var newTag = tagInput.value;
-        if (newTag.length == 0 || newTag.length > 120 || newTag == app.trackedTag) {
+        if (newTag.length == 0 || newTag.length > 120 || !/^\w+$/.test(newTag) || newTag == app.trackedTag) {
             return;
         }
         if (app.trackedTag) {

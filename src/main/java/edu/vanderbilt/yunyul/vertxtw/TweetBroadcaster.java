@@ -8,9 +8,13 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.sockjs.*;
 import lombok.Setter;
 
+import java.util.regex.Pattern;
+
 import static edu.vanderbilt.yunyul.vertxtw.TwitterWallBootstrap.log;
 
 public class TweetBroadcaster {
+    private static final Pattern hashtag = Pattern.compile("^\\w+$");
+
     @Setter
     private TwitterHandler twitterHandler;
 
@@ -33,15 +37,10 @@ public class TweetBroadcaster {
                 String cmd = parts[0];
                 String channel = parts[1].toLowerCase();
 
-                // Strip leading hashtag
-                if (channel.startsWith("#")) {
-                    channel = channel.substring(1);
-                }
-
                 switch (cmd.toUpperCase()) {
                     // Registration command
                     case "REG":
-                        if (channel.length() > 0 && channel.length() <= 120) {
+                        if (channel.length() > 0 && channel.length() <= 120 && hashtag.matcher(channel).matches()) {
                             synchronized (lock) {
                                 channels.put(channel, sock);
                                 clients.put(sock, channel);
