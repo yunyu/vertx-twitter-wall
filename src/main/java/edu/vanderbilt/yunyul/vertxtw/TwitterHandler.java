@@ -1,8 +1,7 @@
 package edu.vanderbilt.yunyul.vertxtw;
 
-import com.google.common.escape.Escaper;
-import com.google.common.html.HtmlEscapers;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.Setter;
 import twitter4j.*;
@@ -23,7 +22,7 @@ public class TwitterHandler {
     @Setter
     private TweetBroadcaster broadcaster;
 
-    private static final Gson gson = new Gson();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
     private final TwitterStream twitterStream;
     private Set<String> trackedTags = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
@@ -42,8 +41,13 @@ public class TwitterHandler {
         twitterStream.addListener(new StatusListener() {
             @Override
             public void onStatus(Status status) {
-                for (HashtagEntity e : status.getHashtagEntities()) {
-                    broadcaster.broadcast(e.getText(), gson.toJson(new SimpleTweet(status)));
+                try {
+                    String statusJson = objectMapper.writeValueAsString(new SimpleTweet(status));
+                    for (HashtagEntity e : status.getHashtagEntities()) {
+                        broadcaster.broadcast(e.getText(), statusJson);
+                    }
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
                 }
             }
 
