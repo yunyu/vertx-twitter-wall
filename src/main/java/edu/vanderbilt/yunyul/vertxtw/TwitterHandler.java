@@ -24,7 +24,6 @@ public class TwitterHandler {
     private TweetBroadcaster broadcaster;
 
     private static final Gson gson = new Gson();
-    private static final Escaper escaper = HtmlEscapers.htmlEscaper();
     private final TwitterStream twitterStream;
     private Set<String> trackedTags = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
@@ -36,7 +35,8 @@ public class TwitterHandler {
                 .setOAuthConsumerKey(consumerKey)
                 .setOAuthConsumerSecret(consumerSecret)
                 .setOAuthAccessToken(accessToken)
-                .setOAuthAccessTokenSecret(accessTokenSecret);
+                .setOAuthAccessTokenSecret(accessTokenSecret)
+                .setDebugEnabled(false);
         twitterStream = new TwitterStreamFactory(configurationBuilder.build()).getInstance();
 
         twitterStream.addListener(new StatusListener() {
