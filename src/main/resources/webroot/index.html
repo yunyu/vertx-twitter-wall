@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdn.rawgit.com/Chalarangelo/mini.css/v2.1.0/dist/mini-default.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.2/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.2.4/vue.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/autolinker/1.4.2/Autolinker.min.js"></script>
     <style>
         header {
             height: auto;
@@ -97,7 +98,7 @@
             <a v-bind:href="'https://twitter.com/' + tweet.originalUsername + '/status/' + tweet.id"
                v-for="tweet in tweets" target="_blank" class="card">
                     <div class="section tweet">
-                        <p>{{ tweet.text }}</p>
+                        <p v-html="tweet.text"></p>
                     </div>
                     <div class="section info">
                         <img v-bind:src="tweet.userProfilePicture" class="avatar"/>
@@ -130,7 +131,9 @@
 
     var sock = new SockJS(window.location.origin + '/sock');
     sock.onmessage = function (e) {
-        app.tweets.unshift(JSON.parse(e.data));
+        var tweet = JSON.parse(e.data);
+        tweet.text = Autolinker.link(tweet.text);
+        app.tweets.unshift(tweet);
         if (app.tweets.length > 150) app.tweets.pop();
     };
 

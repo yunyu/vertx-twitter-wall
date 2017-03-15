@@ -120,15 +120,16 @@ public class TwitterHandler {
         private String id;
 
         public SimpleTweet(Status status) {
-            this.text = status.getText();
             this.time = status.getCreatedAt().getTime();
             this.username = status.getUser().getScreenName();
             this.userProfilePicture = status.getUser().getMiniProfileImageURLHttps();
             this.isRetweet = status.isRetweet();
             if (this.isRetweet) {
                 this.originalUsername = status.getRetweetedStatus().getUser().getScreenName();
+                this.text = "RT @" + this.originalUsername + ": " + status.getRetweetedStatus().getText();
                 this.id = Long.toString(status.getRetweetedStatus().getId());
             } else {
+                this.text = status.getText();
                 this.originalUsername = this.username;
                 this.id = Long.toString(status.getId());
             }

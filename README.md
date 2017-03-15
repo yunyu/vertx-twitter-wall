@@ -1,7 +1,7 @@
 Vert.x Twitter Wall
 ==
 
-![](https://i.imgur.com/qqZmDqJ.png)
+![](https://i.imgur.com/RMuRDf1.png)
 **[Live demo](http://twitterwall.yunyul.in/)**
 
 Twitter Wall project for Vert.x. Streams tweets using Twitter4J through SockJS. Uses mini.css and vue.js on the frontend.
