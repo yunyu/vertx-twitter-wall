@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--suppress JSUnresolvedFunction -->
 <html>
 <head>
     <title>Vert.x Twitter Wall</title>
@@ -19,7 +20,7 @@
             white-space: normal;
         }
 
-         .tracked-tag {
+        .tracked-tag {
             font-size: 1.25em;
             display: inline-block;
             line-height: 2em;
@@ -32,7 +33,7 @@
                 line-height: 2.5em;
             }
 
-            #tag {
+            .tag-bar input {
                 width: 135px;
             }
         }
@@ -76,6 +77,11 @@
 
         .tag-bar {
             float: right;
+            background: transparent;
+            margin: 0;
+            border: none;
+            padding: 0;
+            box-shadow: none;
         }
 
         .tweet-container {
@@ -110,22 +116,22 @@
     <header class="sticky">
         <div v-if="trackedTag" class="tracked-tag">Tracking #{{ trackedTag }}</div>
         <div v-else class="tracked-tag">Not tracking</div>
-        <div class="input-group tag-bar">
-            <input id="tag" type="text" placeholder="e.g. resist">
-            <button id="set-tag" class="primary">Track hashtag</button>
-        </div>
+        <form id="hashtag-form" class="input-group tag-bar">
+            <span class="tag-input-wrapper"><input id="tag-input" type="text" placeholder="Hashtag to track"></span>
+            <button class="primary">Track</button>
+        </form>
     </header>
     <div class="tweet-container">
         <div id="tweets" class="row">
             <a v-bind:href="'https://twitter.com/' + tweet.originalUsername + '/status/' + tweet.id"
                v-for="tweet in tweets" target="_blank" class="card">
-                    <div class="section tweet">
-                        <p v-html="tweet.text"></p>
-                    </div>
-                    <div class="section info">
-                        <img v-bind:src="tweet.userProfilePicture" class="avatar"/>
-                        <span class="username">@{{ tweet.username }}</span>
-                        <span class="time">{{ tweet.time | formatDate }}</span>
+                <div class="section tweet">
+                    <p v-html="tweet.text"></p>
+                </div>
+                <div class="section info">
+                    <img v-bind:src="tweet.userProfilePicture" class="avatar"/>
+                    <span class="username">@{{ tweet.username }}</span>
+                    <span class="time">{{ tweet.time | formatDate }}</span>
                 </div>
             </a>
             <div v-for="n in 10" class="card invisible"></div>
@@ -160,19 +166,13 @@
         if (app.tweets.length > 150) app.tweets.pop();
     };
 
-    var tagInput = document.getElementById("tag");
-    var setTagBtn = document.getElementById("set-tag");
-
-    tagInput.addEventListener("keyup", function (event) {
-        event.preventDefault();
-        if (event.keyCode == 13) setTagBtn.click();
-    });
-
-    setTagBtn.onclick = function () {
-        if (tagInput.value.startsWith("#")) {
-            tagInput.value = tagInput.value.substr(1);
-        }
+    var tagInput = document.getElementById("tag-input");
+    document.getElementById("hashtag-form").addEventListener("submit", function (e) {
+        e.preventDefault();
         var newTag = tagInput.value;
+        if (newTag.startsWith("#")) {
+            newTag = newTag.substr(1);
+        }
         if (newTag.length == 0 || newTag.length > 120 || !/^\w+$/.test(newTag) || newTag == app.trackedTag) {
             return;
         }
@@ -180,9 +180,10 @@
             sock.send("UNREG " + app.trackedTag);
         }
         sock.send("REG " + newTag);
+        tagInput.value = "";
         app.trackedTag = newTag;
         app.tweets = [];
-    };
+    });
 </script>
 </body>
 </html>
