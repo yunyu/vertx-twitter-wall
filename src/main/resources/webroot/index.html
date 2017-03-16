@@ -16,8 +16,8 @@
         }
 
         header {
-            height: auto;
-            white-space: normal;
+            height: 46px;
+            white-space: nowrap;
             position: fixed;
             left: 0;
             right: 0;
@@ -32,7 +32,16 @@
             margin: 2px;
         }
 
-        @media (max-width: 768px) {
+        .tag-bar {
+            float: right;
+            background: transparent;
+            margin: 0;
+            border: none;
+            padding: 0;
+            box-shadow: none;
+        }
+
+        @media (max-width: 900px) {
             .tracked-tag {
                 font-size: 1em;
                 line-height: 2.5em;
@@ -66,6 +75,16 @@
             header {
                 padding-left: 3px;
                 padding-right: 3px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .tag-bar {
+                float: initial;
+            }
+
+            .tag-bar input {
+                width: 135px;
             }
         }
 
@@ -104,15 +123,6 @@
             margin: 0 8px;
             box-shadow: none;
             border: none;
-        }
-
-        .tag-bar {
-            float: right;
-            background: transparent;
-            margin: 0;
-            border: none;
-            padding: 0;
-            box-shadow: none;
         }
 
         .tweet-container {
