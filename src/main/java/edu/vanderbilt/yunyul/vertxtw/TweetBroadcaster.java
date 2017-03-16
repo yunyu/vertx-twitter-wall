@@ -40,7 +40,7 @@ public class TweetBroadcaster {
                 switch (cmd.toUpperCase()) {
                     // Registration command
                     case "REG":
-                        if (channel.length() > 0 && channel.length() <= 120 && hashtag.matcher(channel).matches()) {
+                        if (channel.length() > 0 && channel.length() <= 30 && hashtag.matcher(channel).matches()) {
                             synchronized (lock) {
                                 channels.put(channel, sock);
                                 clients.put(sock, channel);

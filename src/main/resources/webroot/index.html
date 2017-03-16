@@ -204,7 +204,7 @@
         if (newTag.startsWith("#")) {
             newTag = newTag.substr(1);
         }
-        if (newTag.length == 0 || newTag.length > 120 || !/^\w+$/.test(newTag) || newTag == app.trackedTag) {
+        if (newTag.length == 0 || newTag.length > 30 || !/^\w+$/.test(newTag) || newTag == app.trackedTag) {
             return;
         }
         if (app.trackedTag) {
