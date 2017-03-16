@@ -189,6 +189,15 @@
     </div>
 </div>
 <script>
+    function htmlEscape(str) {
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
     var app = new Vue({
         el: "#app",
         data: {
@@ -211,7 +220,7 @@
     var sock = new SockJS(window.location.origin + '/sock');
     sock.onmessage = function (e) {
         var tweet = JSON.parse(e.data);
-        tweet.text = Autolinker.link(tweet.text, {mention: "twitter", hashtag: "twitter"});
+        tweet.text = Autolinker.link(htmlEscape(tweet.text), {mention: "twitter", hashtag: "twitter"});
         tweet.profileUrl = "https://twitter.com/" + tweet.username;
         tweet.directUrl = "https://twitter.com/" + tweet.originalUsername + "/status/" + tweet.id;
         app.tweets.unshift(tweet);
