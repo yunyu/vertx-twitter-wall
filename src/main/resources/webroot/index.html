@@ -18,6 +18,11 @@
         header {
             height: auto;
             white-space: normal;
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 0;
+            z-index: 2;
         }
 
         .tracked-tag {
@@ -35,6 +40,32 @@
 
             .tag-bar input {
                 width: 135px;
+            }
+
+            .tag-bar input, .tag-bar button {
+                font-size: 0.75em;
+                line-height: 2em;
+            }
+        }
+
+        @media (max-width: 688px) {
+            .tracked-tag {
+                font-size: 0.75em;
+                line-height: 3.5em;
+            }
+
+            .tag-bar input {
+                width: 110px;
+            }
+
+            .tag-bar input, .tag-bar button {
+                padding-left: 6px;
+                padding-right: 6px;
+            }
+
+            header {
+                padding-left: 3px;
+                padding-right: 3px;
             }
         }
 
@@ -85,7 +116,7 @@
         }
 
         .tweet-container {
-            margin-top: 8px;
+            margin-top: 68px;
         }
 
         .time {
@@ -113,10 +144,10 @@
 </head>
 <body>
 <div id="app">
-    <header class="sticky">
-        <div v-if="trackedTag" class="tracked-tag">Tracking #{{ trackedTag }}</div>
+    <header>
+        <div v-if="trackedTag" class="tracked-tag">#{{ trackedTag }}</div>
         <div v-else class="tracked-tag">Not tracking</div>
-        <form id="hashtag-form" class="input-group tag-bar">
+        <form id="hashtag-form" class="input-group tag-bar" autocomplete="off">
             <span class="tag-input-wrapper"><input id="tag-input" type="text" placeholder="Hashtag to track"></span>
             <button class="primary">Track</button>
         </form>
