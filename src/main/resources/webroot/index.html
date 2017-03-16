@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--suppress JSUnresolvedFunction -->
+<!--suppress JSUnresolvedFunction, JSUnresolvedVariable -->
 <html>
 <head>
     <title>Vert.x Twitter Wall</title>
@@ -101,6 +101,9 @@
         .card {
             margin: 2px 7px 14px;
             background: #fff;
+        }
+
+        .card > .section, .card > .section.info a {
             text-decoration: none;
             color: #000;
         }
@@ -139,8 +142,9 @@
             float: right;
         }
 
-        .info > span, .info > img {
+        .info span, .info img {
             vertical-align: text-bottom;
+            z-index: 2;
         }
 
         .avatar {
@@ -151,6 +155,8 @@
 
         .username {
             font-weight: bold;
+            text-decoration: none;
+            color: #000;
         }
 
         .time {
@@ -170,17 +176,16 @@
     </header>
     <div class="tweet-container">
         <div id="tweets" class="row">
-            <a v-bind:href="'https://twitter.com/' + tweet.originalUsername + '/status/' + tweet.id"
-               v-for="tweet in tweets" target="_blank" class="card">
-                <div class="section tweet">
+            <div v-for="tweet in tweets" class="card">
+                <a v-bind:href="tweet.directUrl" target="_blank" class="section tweet">
                     <p v-html="tweet.text"></p>
-                </div>
-                <div class="section info">
+                </a>
+                <a v-bind:href="tweet.profileUrl" target="_blank" class="section info">
                     <img v-bind:src="tweet.userProfilePicture" class="avatar"/>
                     <span class="username">@{{ tweet.username }}</span>
                     <span class="time">{{ tweet.time | formatDate }}</span>
-                </div>
-            </a>
+                </a>
+            </div>
             <div v-for="n in 10" class="card invisible"></div>
         </div>
     </div>
@@ -209,6 +214,8 @@
     sock.onmessage = function (e) {
         var tweet = JSON.parse(e.data);
         tweet.text = Autolinker.link(tweet.text, {mention: "twitter", hashtag: "twitter"});
+        tweet.profileUrl = "https://twitter.com/" + tweet.username;
+        tweet.directUrl = "https://twitter.com/" + tweet.originalUsername + "/status/" + tweet.id;
         app.tweets.unshift(tweet);
         if (app.tweets.length > 150) app.tweets.pop();
     };
