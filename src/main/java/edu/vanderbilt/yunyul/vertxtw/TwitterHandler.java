@@ -2,6 +2,8 @@ package edu.vanderbilt.yunyul.vertxtw;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.escape.Escaper;
+import com.google.common.html.HtmlEscapers;
 import lombok.Data;
 import lombok.Setter;
 import twitter4j.*;
@@ -22,6 +24,7 @@ public class TwitterHandler {
     @Setter
     private TweetBroadcaster broadcaster;
 
+    private static final Escaper htmlEscaper = HtmlEscapers.htmlEscaper();
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private final TwitterStream twitterStream;
     private Set<String> trackedTags = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
@@ -130,10 +133,12 @@ public class TwitterHandler {
             this.isRetweet = status.isRetweet();
             if (this.isRetweet) {
                 this.originalUsername = status.getRetweetedStatus().getUser().getScreenName();
-                this.text = "RT @" + this.originalUsername + ": " + status.getRetweetedStatus().getText();
+                this.text = htmlEscaper.escape(
+                        "RT @" + this.originalUsername + ": " + status.getRetweetedStatus().getText()
+                );
                 this.id = Long.toString(status.getRetweetedStatus().getId());
             } else {
-                this.text = status.getText();
+                this.text = htmlEscaper.escape(status.getText());
                 this.originalUsername = this.username;
                 this.id = Long.toString(status.getId());
             }
