@@ -24,6 +24,23 @@
             z-index: 2;
         }
 
+        .no-tweets-found-msg {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .no-tweets-found-msg h1 {
+            top: 50%;
+            position: relative;
+            transform: translate(0%, -50%);
+            color: #888;
+        }
+
         @-moz-document url-prefix() {
             header {
                 white-space: normal;
@@ -91,6 +108,10 @@
             .tag-bar input {
                 width: 135px;
             }
+
+            .no-tweets-found-msg h1 {
+                font-size: 1.25em;
+            }
         }
 
         #tweets {
@@ -133,7 +154,7 @@
             border: none;
         }
 
-        .tweet-container {
+        .tweet-container, .no-tweets-found-msg {
             margin-top: 62px;
         }
 
@@ -172,7 +193,7 @@
             <button class="primary">Track</button>
         </form>
     </header>
-    <div class="tweet-container">
+    <div v-if="tweets.length > 0" class="tweet-container">
         <div id="tweets" class="row">
             <div v-for="tweet in tweets" class="card">
                 <a v-bind:href="tweet.directUrl" target="_blank" class="section tweet">
@@ -186,6 +207,10 @@
             </div>
             <div v-for="n in 10" class="card invisible"></div>
         </div>
+    </div>
+    <div v-else class="no-tweets-found-msg">
+        <h1 v-if="trackedTag">Waiting for tweets...</h1>
+        <h1 v-else>Enter a hashtag to track</h1>
     </div>
 </div>
 <script>
