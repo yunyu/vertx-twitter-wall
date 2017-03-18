@@ -1,5 +1,7 @@
 package edu.vanderbilt.yunyul.vertxtw;
 
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
@@ -13,11 +15,15 @@ import java.io.InputStream;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-public class TwitterWallBootstrap {
+public class TwitterWallVerticle extends AbstractVerticle {
     private static final Logger logger = Logger.getLogger("TwitterWall");
-    private static final Vertx vertx = Vertx.vertx();
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
+        Vertx.vertx().deployVerticle(new TwitterWallVerticle());
+    }
+
+    @Override
+    public void start(Future<Void> startFuture) throws Exception {
         HttpServer httpServer = vertx.createHttpServer();
         Router router = Router.router(vertx);
 
@@ -26,13 +32,13 @@ public class TwitterWallBootstrap {
         router.route().handler(StaticHandler.create());
         router.route().failureHandler(ErrorHandler.create());
 
-        logger.info("Loading configuration...");
+        log("Loading configuration...");
         Properties properties = new Properties();
         try (InputStream configInput = new FileInputStream(new File("config.properties"))) {
             properties.load(configInput);
         }
 
-        TwitterHandler twitterHandler = new TwitterHandler(properties.getProperty("consumerKey"),
+        TwitterStreamHandler twitterHandler = new TwitterStreamHandler(properties.getProperty("consumerKey"),
                 properties.getProperty("consumerSecret"),
                 properties.getProperty("accessToken"),
                 properties.getProperty("accessTokenSecret"));
@@ -41,7 +47,7 @@ public class TwitterWallBootstrap {
         // Deal with circular dependency
         broadcaster.setTwitterHandler(twitterHandler);
 
-        logger.info("Starting webserver...");
+        log("Starting webserver...");
         httpServer.requestHandler(router::accept).listen(Integer.parseInt(properties.getProperty("port")));
     }
 

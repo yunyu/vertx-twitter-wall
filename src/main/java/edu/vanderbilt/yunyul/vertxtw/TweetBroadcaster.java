@@ -8,13 +8,13 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.sockjs.*;
 import lombok.Setter;
 
-import static edu.vanderbilt.yunyul.vertxtw.TwitterWallBootstrap.log;
+import static edu.vanderbilt.yunyul.vertxtw.TwitterWallVerticle.log;
 
 public class TweetBroadcaster {
     private static final String TWEET_PREFIX = "tweet.";
 
     @Setter
-    private TwitterHandler twitterHandler;
+    private TwitterStreamHandler twitterHandler;
 
     private final EventBus eventBus;
     private final Multiset<String> tagRegistrantCounts = HashMultiset.create();

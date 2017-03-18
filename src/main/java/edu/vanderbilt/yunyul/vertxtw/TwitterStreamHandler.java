@@ -14,9 +14,9 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
-import static edu.vanderbilt.yunyul.vertxtw.TwitterWallBootstrap.log;
+import static edu.vanderbilt.yunyul.vertxtw.TwitterWallVerticle.log;
 
-public class TwitterHandler {
+public class TwitterStreamHandler {
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final Pattern hashtag = Pattern.compile("^\\w+$");
 
@@ -29,7 +29,10 @@ public class TwitterHandler {
     private final Executor filterUpdateThread = Executors.newSingleThreadExecutor();
     private final RateLimiter rateLimiter = RateLimiter.create(2);
 
-    public TwitterHandler(String consumerKey, String consumerSecret, String accessToken, String accessTokenSecret) {
+    public TwitterStreamHandler(String consumerKey,
+                                String consumerSecret,
+                                String accessToken,
+                                String accessTokenSecret) {
         log("Initializing Twitter handler...");
 
         ConfigurationBuilder configurationBuilder = new ConfigurationBuilder()

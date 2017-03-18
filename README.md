@@ -4,7 +4,7 @@ Vert.x Twitter Wall
 ![](https://i.imgur.com/sZqt0CO.png)
 **[Live demo](http://twitterwall.yunyul.in/)**
 
-Twitter Wall project for Vert.x. Streams tweets using Twitter4J through SockJS. Uses mini.css and vue.js on the frontend.
+Twitter Wall project for Vert.x. Streams tweets using Twitter4J through the SockJS event bus bridge. Uses mini.css and vue.js on the frontend.
 
 Usage
 --

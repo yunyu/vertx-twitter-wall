@@ -24,7 +24,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>edu.vanderbilt.yunyul.vertxtw.TwitterWallBootstrap</mainClass>
+                            <mainClass>edu.vanderbilt.yunyul.vertxtw.TwitterWallVerticle</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
