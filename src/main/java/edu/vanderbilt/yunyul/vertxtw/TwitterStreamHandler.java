@@ -8,6 +8,7 @@ import lombok.Setter;
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
 
+import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.Executor;
@@ -22,6 +23,7 @@ public class TwitterStreamHandler {
 
     @Setter
     private TweetBroadcaster broadcaster;
+    private String[] lastTrackedTags;
 
     private final TwitterStream twitterStream;
     private final Set<String> trackedTags = new ConcurrentSkipListSet<>();
@@ -85,12 +87,14 @@ public class TwitterStreamHandler {
 
     private void updateFilters() {
         filterUpdateThread.execute(() -> {
+            String[] tagArr = trackedTags.toArray(new String[0]);
             // Don't ever run out of tracked tags to prevent API errors, they won't broadcast anything
-            if (!trackedTags.isEmpty()) {
+            if (tagArr.length > 0 && !Arrays.equals(tagArr, lastTrackedTags)) {
+                lastTrackedTags = tagArr;
                 // Rate limit filter updates, blocks until permit acquired
                 rateLimiter.acquire();
                 // Blocking call, spins up new thread
-                twitterStream.filter(trackedTags.toArray(new String[0]));
+                twitterStream.filter(tagArr);
             }
         });
     }

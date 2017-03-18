@@ -22,7 +22,7 @@ public class TwitterWallVerticle extends AbstractVerticle {
     }
 
     @Override
-    public void start(Future<Void> startFuture) throws Exception {
+    public void start() throws Exception {
         HttpServer httpServer = vertx.createHttpServer();
         Router router = Router.router(vertx);
 
