@@ -1,11 +1,13 @@
 package edu.vanderbilt.yunyul.vertxtw;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.sockjs.*;
+import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import lombok.Setter;
 
 import java.util.regex.Pattern;
@@ -18,8 +20,7 @@ public class TweetBroadcaster {
     @Setter
     private TwitterHandler twitterHandler;
 
-    private Multimap<String, SockJSSocket> channels = HashMultimap.create();
-    private Multimap<SockJSSocket, String> clients = HashMultimap.create();
+    private Table<String, SockJSSocket, Boolean> channels = HashBasedTable.create();
 
     public TweetBroadcaster(Router router, Vertx vertx) {
         log("Initializing broadcaster...");
@@ -40,33 +41,28 @@ public class TweetBroadcaster {
                     // Registration command
                     case "REG":
                         if (channel.length() > 0 && channel.length() <= 30 && hashtag.matcher(channel).matches()) {
-                            channels.put(channel, sock);
-                            clients.put(sock, channel);
+                            channels.put(channel, sock, true);
                             twitterHandler.trackTag(channel);
                         }
                         break;
                     // Unregister command
                     case "UNREG":
-                        removeClientFromTag(sock, channel);
+                        removeClientFromTag(channel, sock);
                 }
-
             });
             sock.endHandler(v -> {
-                for (String channel : clients.get(sock)) {
-                    channels.remove(channel, sock);
+                for (String channel : channels.column(sock).keySet()) {
+                    removeClientFromTag(channel, sock);
                 }
-                clients.removeAll(sock);
             });
         });
 
         router.route("/sock/*").handler(sockJSHandler);
     }
 
-
-    private void removeClientFromTag(SockJSSocket sock, String channel) {
+    private void removeClientFromTag(String channel, SockJSSocket sock) {
         channels.remove(channel, sock);
-        clients.remove(sock, channel);
-        if (!channels.containsKey(channel)) {
+        if (!channels.containsRow(channel)) {
             twitterHandler.untrackTag(channel);
         }
     }
@@ -78,6 +74,6 @@ public class TweetBroadcaster {
      * @param text The message to send
      */
     public void broadcast(String tag, String text) {
-        channels.get(tag.toLowerCase()).forEach(client -> client.write(Buffer.buffer(text)));
+        channels.row(tag.toLowerCase()).keySet().forEach(client -> client.write(Buffer.buffer(text)));
     }
 }
