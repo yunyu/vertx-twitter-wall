@@ -189,7 +189,7 @@
         <div v-if="trackedTag" class="tracked-tag">#{{ trackedTag }}</div>
         <div v-else class="tracked-tag">Not tracking</div>
         <form v-on:submit.prevent="onSubmit" id="hashtag-form" class="input-group tag-bar" autocomplete="off">
-            <span class="tag-input-wrapper"><input id="tag-input" type="text" placeholder="Hashtag to track"></span>
+            <span class="tag-input-wrapper"><input v-model="tagInput" type="text" placeholder="Hashtag to track"></span>
             <button class="primary">Track</button>
         </form>
     </header>
@@ -227,12 +227,12 @@
         el: "#app",
         data: {
             trackedTag: null,
-            tweets: []
+            tweets: [],
+            tagInput: ""
         },
         methods: {
             onSubmit: function () {
-                var tagInput = document.getElementById("tag-input");
-                var newTag = tagInput.value;
+                var newTag = app.tagInput;
                 if (newTag.startsWith("#")) {
                     newTag = newTag.substr(1);
                 }
@@ -243,7 +243,7 @@
                     sock.send("UNREG " + app.trackedTag);
                 }
                 sock.send("REG " + newTag);
-                tagInput.value = "";
+                app.tagInput = "";
                 app.trackedTag = newTag;
                 app.tweets = [];
             }
