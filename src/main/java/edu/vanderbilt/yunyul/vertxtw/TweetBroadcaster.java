@@ -1,7 +1,6 @@
 package edu.vanderbilt.yunyul.vertxtw;
 
 import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Table;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
@@ -11,6 +10,8 @@ import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import lombok.Setter;
+
+import java.util.ArrayList;
 
 import static edu.vanderbilt.yunyul.vertxtw.TwitterWallBootstrap.log;
 
@@ -52,7 +53,7 @@ public class TweetBroadcaster {
 
             sock.endHandler(v -> {
                 // Guava column() view does not support remove, so we make a copy
-                for (String channel : channels.column(sock).keySet().toArray(new String[0])) {
+                for (String channel : new ArrayList<>(channels.column(sock).keySet())) {
                     removeClientFromTag(channel, sock);
                 }
             });
