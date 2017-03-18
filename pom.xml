@@ -24,8 +24,11 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>edu.vanderbilt.yunyul.vertxtw.TwitterWallVerticle</mainClass>
+                            <mainClass>io.vertx.core.Launcher</mainClass>
                         </manifest>
+                        <manifestEntries>
+                            <Main-Verticle>edu.vanderbilt.yunyul.vertxtw.TwitterWallVerticle</Main-Verticle>
+                        </manifestEntries>
                     </archive>
                 </configuration>
             </plugin>

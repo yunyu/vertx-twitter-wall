@@ -12,9 +12,9 @@ Usage
 1. Build using `mvn clean package`
 2. Move the JAR in `/target` to your preferred location
 3. Acquire credentials, see [instructions](http://stackoverflow.com/a/12335636)
-4. Put credentials and bind port in `config.properties` (see `config.example.properties`)
-5. Move `config.properties` to same directory as the JAR
-6. Run `java -jar vertx-twitter-wall-1.0-SNAPSHOT.jar`
+4. Put credentials and bind port in `config.json` (see `config.example.json`)
+5. Move `config.json` to same directory as the JAR
+6. Run `java -jar vertx-twitter-wall-1.0-SNAPSHOT.jar -conf config.json`
 7. Visit `localhost:<port in config>`
 
 TODO

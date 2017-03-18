@@ -12,4 +12,4 @@ build
 *.iws
 target
 /dependency-reduced-pom.xml
-config.properties
+config.json

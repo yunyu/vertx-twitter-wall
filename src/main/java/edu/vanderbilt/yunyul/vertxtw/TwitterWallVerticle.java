@@ -17,10 +17,6 @@ import java.util.logging.Logger;
 public class TwitterWallVerticle extends AbstractVerticle {
     private static final Logger logger = Logger.getLogger("TwitterWall");
 
-    public static void main(String[] args) {
-        Vertx.vertx().deployVerticle(new TwitterWallVerticle());
-    }
-
     @Override
     public void start() throws Exception {
         HttpServer httpServer = vertx.createHttpServer();
@@ -31,24 +27,18 @@ public class TwitterWallVerticle extends AbstractVerticle {
         router.route().handler(StaticHandler.create());
         router.route().failureHandler(ErrorHandler.create());
 
-        log("Loading configuration...");
-        Properties properties = new Properties();
-        try (InputStream configInput = new FileInputStream(new File("config.properties"))) {
-            properties.load(configInput);
-        }
-
         TwitterStreamHandler twitterStreamHandler = new TwitterStreamHandler(
-                properties.getProperty("consumerKey"),
-                properties.getProperty("consumerSecret"),
-                properties.getProperty("accessToken"),
-                properties.getProperty("accessTokenSecret"));
+                config().getString("consumerKey"),
+                config().getString("consumerSecret"),
+                config().getString("accessToken"),
+                config().getString("accessTokenSecret"));
 
         // Register circular dependency
         twitterStreamHandler.setBroadcaster(broadcaster);
         broadcaster.setTwitterStreamHandler(twitterStreamHandler);
 
         log("Starting webserver...");
-        httpServer.requestHandler(router::accept).listen(Integer.parseInt(properties.getProperty("port")));
+        httpServer.requestHandler(router::accept).listen(config().getInteger("port", 8080));
     }
 
     /**
