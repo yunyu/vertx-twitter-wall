@@ -10,7 +10,6 @@ import io.vertx.ext.web.handler.StaticHandler;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -38,14 +37,15 @@ public class TwitterWallVerticle extends AbstractVerticle {
             properties.load(configInput);
         }
 
-        TwitterStreamHandler twitterHandler = new TwitterStreamHandler(properties.getProperty("consumerKey"),
+        TwitterStreamHandler twitterStreamHandler = new TwitterStreamHandler(
+                properties.getProperty("consumerKey"),
                 properties.getProperty("consumerSecret"),
                 properties.getProperty("accessToken"),
                 properties.getProperty("accessTokenSecret"));
-        twitterHandler.setBroadcaster(broadcaster);
 
-        // Deal with circular dependency
-        broadcaster.setTwitterHandler(twitterHandler);
+        // Register circular dependency
+        twitterStreamHandler.setBroadcaster(broadcaster);
+        broadcaster.setTwitterStreamHandler(twitterStreamHandler);
 
         log("Starting webserver...");
         httpServer.requestHandler(router::accept).listen(Integer.parseInt(properties.getProperty("port")));

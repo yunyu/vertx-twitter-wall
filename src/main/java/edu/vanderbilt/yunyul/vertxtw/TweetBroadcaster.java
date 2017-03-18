@@ -14,7 +14,7 @@ public class TweetBroadcaster {
     private static final String TWEET_PREFIX = "tweet.";
 
     @Setter
-    private TwitterStreamHandler twitterHandler;
+    private TwitterStreamHandler twitterStreamHandler;
 
     private final EventBus eventBus;
     private final Multiset<String> tagRegistrantCounts = HashMultiset.create();
@@ -23,7 +23,6 @@ public class TweetBroadcaster {
         log("Initializing broadcaster...");
 
         this.eventBus = vertx.eventBus();
-
         SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
 
         // Allow tweet broadcasts
@@ -36,7 +35,7 @@ public class TweetBroadcaster {
         sockJSHandler.bridge(options, be -> {
             if (be.type() == BridgeEventType.REGISTER) {
                 String tag = getHashtag(be);
-                if (tag != null && twitterHandler.trackTag(tag)) {
+                if (tag != null && twitterStreamHandler.trackTag(tag)) {
                     tagRegistrantCounts.add(tag);
                 } else {
                     be.complete(false);
@@ -48,7 +47,7 @@ public class TweetBroadcaster {
                 if (tag != null) {
                     tagRegistrantCounts.remove(tag);
                     if (!tagRegistrantCounts.contains(tag)) {
-                        twitterHandler.untrackTag(tag);
+                        twitterStreamHandler.untrackTag(tag);
                     }
                 } else {
                     be.complete(false);
