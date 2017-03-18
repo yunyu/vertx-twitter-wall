@@ -16,12 +16,13 @@ import java.util.regex.Pattern;
 import static edu.vanderbilt.yunyul.vertxtw.TwitterWallBootstrap.log;
 
 public class TweetBroadcaster {
+    private static final Pattern hashtag = Pattern.compile("^\\w+$");
+
     @Setter
     private TwitterHandler twitterHandler;
 
     private final Context context;
     private final Table<String, SockJSSocket, Boolean> channels = HashBasedTable.create();
-    private static final Pattern hashtag = Pattern.compile("^\\w+$");
 
     public TweetBroadcaster(Router router, Vertx vertx) {
         log("Initializing broadcaster...");

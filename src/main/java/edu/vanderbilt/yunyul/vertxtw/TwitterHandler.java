@@ -15,12 +15,12 @@ import java.util.concurrent.TimeUnit;
 import static edu.vanderbilt.yunyul.vertxtw.TwitterWallBootstrap.log;
 
 public class TwitterHandler {
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     @Setter
     private TweetBroadcaster broadcaster;
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
     private final Set<String> trackedTags = new ConcurrentSkipListSet<>();
-
     private boolean filterUpdateQueued = false;
 
     public TwitterHandler(String consumerKey, String consumerSecret, String accessToken, String accessTokenSecret) {
@@ -77,7 +77,9 @@ public class TwitterHandler {
         // The library already streams outside of Vert.x, so there's no point doing this as a timer
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
             if (filterUpdateQueued) {
+                // Don't ever run out of tracked tags to prevent API errors, they won't broadcast anything
                 if (!trackedTags.isEmpty()) {
+                    // Blocking
                     twitterStream.filter(trackedTags.toArray(new String[0]));
                 }
                 filterUpdateQueued = false;
