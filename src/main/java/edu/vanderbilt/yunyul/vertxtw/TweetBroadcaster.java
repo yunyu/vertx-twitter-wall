@@ -62,8 +62,8 @@ public class TweetBroadcaster {
 
     private String getHashtag(BridgeEvent be) {
         String address = be.getRawMessage().getString("address");
-        if (address.startsWith(TWEET_PREFIX)) {
-            return address.substring(TWEET_PREFIX.length()).toLowerCase();
+        if (address.toLowerCase().equals(address) && address.startsWith(TWEET_PREFIX)) {
+            return address.substring(TWEET_PREFIX.length());
         } else {
             return null;
         }
