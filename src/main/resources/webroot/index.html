@@ -252,9 +252,9 @@
                     return;
                 }
                 if (this.trackedTag) {
-                    eb.unregisterHandler("tweet." + this.trackedTag, onMsg);
+                    eb.unregisterHandler("tweet." + this.trackedTag.toLowerCase(), onMsg);
                 }
-                eb.registerHandler("tweet." + newTag, onMsg);
+                eb.registerHandler("tweet." + newTag.toLowerCase(), onMsg);
                 this.trackedTag = newTag;
                 this.tweets = [];
                 this.tagInput = "";
