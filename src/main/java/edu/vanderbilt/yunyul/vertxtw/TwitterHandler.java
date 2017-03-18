@@ -2,8 +2,6 @@ package edu.vanderbilt.yunyul.vertxtw;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.escape.Escaper;
-import com.google.common.html.HtmlEscapers;
 import lombok.Data;
 import lombok.Setter;
 import twitter4j.*;
@@ -17,9 +15,6 @@ import java.util.concurrent.TimeUnit;
 
 import static edu.vanderbilt.yunyul.vertxtw.TwitterWallBootstrap.log;
 
-/**
- * Class that sets up the Twitter4J Streaming API and broadcasts it to the TweetBroadcaster
- */
 public class TwitterHandler {
     @Setter
     private TweetBroadcaster broadcaster;

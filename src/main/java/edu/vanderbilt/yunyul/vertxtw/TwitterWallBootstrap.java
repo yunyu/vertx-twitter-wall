@@ -14,10 +14,6 @@ public class TwitterWallBootstrap {
     private static final Logger logger = Logger.getLogger("TwitterWall");
     private static final Vertx vertx = Vertx.vertx();
 
-    public static void log(String msg) {
-        logger.info(msg);
-    }
-
     public static void main(String[] args) throws IOException {
         HttpServer httpServer = vertx.createHttpServer();
         Router router = Router.router(vertx);
@@ -44,5 +40,13 @@ public class TwitterWallBootstrap {
 
         logger.info("Starting webserver...");
         httpServer.requestHandler(router::accept).listen(8080);
+    }
+
+    /**
+     * Logs a message to the global logger
+     * @param msg The message to log
+     */
+    public static void log(String msg) {
+        logger.info(msg);
     }
 }
