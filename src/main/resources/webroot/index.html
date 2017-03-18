@@ -188,7 +188,7 @@
     <header>
         <div v-if="trackedTag" class="tracked-tag">#{{ trackedTag }}</div>
         <div v-else class="tracked-tag">Not tracking</div>
-        <form id="hashtag-form" class="input-group tag-bar" autocomplete="off">
+        <form v-on:submit.prevent="onSubmit" id="hashtag-form" class="input-group tag-bar" autocomplete="off">
             <span class="tag-input-wrapper"><input id="tag-input" type="text" placeholder="Hashtag to track"></span>
             <button class="primary">Track</button>
         </form>
@@ -228,6 +228,25 @@
         data: {
             trackedTag: null,
             tweets: []
+        },
+        methods: {
+            onSubmit: function () {
+                var tagInput = document.getElementById("tag-input");
+                var newTag = tagInput.value;
+                if (newTag.startsWith("#")) {
+                    newTag = newTag.substr(1);
+                }
+                if (newTag.length == 0 || newTag.length > 30 || !/^\w+$/.test(newTag) || newTag == app.trackedTag) {
+                    return;
+                }
+                if (app.trackedTag) {
+                    sock.send("UNREG " + app.trackedTag);
+                }
+                sock.send("REG " + newTag);
+                tagInput.value = "";
+                app.trackedTag = newTag;
+                app.tweets = [];
+            }
         }
     });
 
@@ -251,25 +270,6 @@
         app.tweets.unshift(tweet);
         if (app.tweets.length > 150) app.tweets.pop();
     };
-
-    var tagInput = document.getElementById("tag-input");
-    document.getElementById("hashtag-form").addEventListener("submit", function (e) {
-        e.preventDefault();
-        var newTag = tagInput.value;
-        if (newTag.startsWith("#")) {
-            newTag = newTag.substr(1);
-        }
-        if (newTag.length == 0 || newTag.length > 30 || !/^\w+$/.test(newTag) || newTag == app.trackedTag) {
-            return;
-        }
-        if (app.trackedTag) {
-            sock.send("UNREG " + app.trackedTag);
-        }
-        sock.send("REG " + newTag);
-        tagInput.value = "";
-        app.trackedTag = newTag;
-        app.tweets = [];
-    });
 </script>
 </body>
 </html>
