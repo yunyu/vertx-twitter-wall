@@ -16,3 +16,9 @@ Usage
 5. Move `config.properties` to same directory as the JAR
 6. Run `java -jar vertx-twitter-wall-1.0-SNAPSHOT.jar`
 7. Visit `localhost:<port in config>`
+
+TODO
+--
+
+* Implement multiple hashtag tracking on the frontend
+* Display old tweets initially (?)
