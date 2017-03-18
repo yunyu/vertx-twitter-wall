@@ -189,7 +189,7 @@
         <div v-if="trackedTag" class="tracked-tag">#{{ trackedTag }}</div>
         <div v-else class="tracked-tag">Not tracking</div>
         <form v-on:submit.prevent="onSubmit" id="hashtag-form" class="input-group tag-bar" autocomplete="off">
-            <span class="tag-input-wrapper"><input v-model="tagInput" type="text" placeholder="Hashtag to track"></span>
+            <input v-model="tagInput" type="text" placeholder="Hashtag to track">
             <button class="primary">Track</button>
         </form>
     </header>
