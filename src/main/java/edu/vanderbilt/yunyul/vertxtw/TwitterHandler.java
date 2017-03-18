@@ -7,9 +7,8 @@ import lombok.Setter;
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
 
-import java.util.Collections;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -20,7 +19,7 @@ public class TwitterHandler {
     private TweetBroadcaster broadcaster;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private final Set<String> trackedTags = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+    private final Set<String> trackedTags = new ConcurrentSkipListSet<>();
 
     private boolean filterUpdateQueued = false;
 
@@ -75,11 +74,11 @@ public class TwitterHandler {
         });
 
         // Rate-limit filter updates
+        // The library already streams outside of Vert.x, so there's no point doing this as a timer
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
             if (filterUpdateQueued) {
-                int tags = trackedTags.size();
-                if (tags > 0) {
-                    twitterStream.filter(trackedTags.toArray(new String[tags]));
+                if (!trackedTags.isEmpty()) {
+                    twitterStream.filter(trackedTags.toArray(new String[0]));
                 }
                 filterUpdateQueued = false;
             }
