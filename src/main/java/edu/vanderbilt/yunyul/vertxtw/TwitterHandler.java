@@ -2,6 +2,7 @@ package edu.vanderbilt.yunyul.vertxtw;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.RateLimiter;
 import lombok.Data;
 import lombok.Setter;
 import twitter4j.*;
@@ -9,8 +10,8 @@ import twitter4j.conf.ConfigurationBuilder;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import static edu.vanderbilt.yunyul.vertxtw.TwitterWallBootstrap.log;
 
@@ -20,8 +21,11 @@ public class TwitterHandler {
     @Setter
     private TweetBroadcaster broadcaster;
 
+    private final TwitterStream twitterStream;
     private final Set<String> trackedTags = new ConcurrentSkipListSet<>();
-    private boolean filterUpdateQueued = false;
+    // Streaming API already uses non Vert.x thread, no need to use one for updates either
+    private final Executor filterUpdateThread = Executors.newSingleThreadExecutor();
+    private final RateLimiter rateLimiter = RateLimiter.create(2);
 
     public TwitterHandler(String consumerKey, String consumerSecret, String accessToken, String accessTokenSecret) {
         log("Initializing Twitter handler...");
@@ -32,7 +36,7 @@ public class TwitterHandler {
                 .setOAuthAccessToken(accessToken)
                 .setOAuthAccessTokenSecret(accessTokenSecret)
                 .setDebugEnabled(false);
-        TwitterStream twitterStream = new TwitterStreamFactory(configurationBuilder.build()).getInstance();
+        this.twitterStream = new TwitterStreamFactory(configurationBuilder.build()).getInstance();
 
         twitterStream.addListener(new StatusListener() {
             @Override
@@ -72,19 +76,18 @@ public class TwitterHandler {
 
             }
         });
+    }
 
-        // Rate-limit filter updates
-        // The library already streams outside of Vert.x, so there's no point doing this as a timer
-        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-            if (filterUpdateQueued) {
-                // Don't ever run out of tracked tags to prevent API errors, they won't broadcast anything
-                if (!trackedTags.isEmpty()) {
-                    // Blocking
-                    twitterStream.filter(trackedTags.toArray(new String[0]));
-                }
-                filterUpdateQueued = false;
+    private void updateFilters() {
+        filterUpdateThread.execute(() -> {
+            // Rate limit filter updates, blocks until permit acquired
+            rateLimiter.acquire();
+            // Don't ever run out of tracked tags to prevent API errors, they won't broadcast anything
+            if (!trackedTags.isEmpty()) {
+                // Blocking call, spins up new thread
+                twitterStream.filter(trackedTags.toArray(new String[0]));
             }
-        }, 0, 1, TimeUnit.SECONDS);
+        });
     }
 
     /**
@@ -93,9 +96,8 @@ public class TwitterHandler {
      * @param tag Hashtag to track
      */
     public void trackTag(String tag) {
-        if (tag.length() == 0) throw new IllegalArgumentException();
         if (trackedTags.add(tag.toLowerCase())) {
-            filterUpdateQueued = true;
+            updateFilters();
         }
     }
 
@@ -106,7 +108,7 @@ public class TwitterHandler {
      */
     public void untrackTag(String tag) {
         if (trackedTags.remove(tag.toLowerCase())) {
-            filterUpdateQueued = true;
+            updateFilters();
         }
     }
 
