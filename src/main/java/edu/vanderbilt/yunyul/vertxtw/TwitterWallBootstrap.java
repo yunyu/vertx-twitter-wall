@@ -24,19 +24,19 @@ public class TwitterWallBootstrap {
         router.route().failureHandler(ErrorHandler.create());
 
         logger.info("Loading configuration...");
+        Properties properties = new Properties();
         try (InputStream configInput = new FileInputStream(new File("config.properties"))) {
-            Properties properties = new Properties();
             properties.load(configInput);
-
-            TwitterHandler twitterHandler = new TwitterHandler(properties.getProperty("consumerKey"),
-                    properties.getProperty("consumerSecret"),
-                    properties.getProperty("accessToken"),
-                    properties.getProperty("accessTokenSecret"));
-            twitterHandler.setBroadcaster(broadcaster);
-
-            // Deal with circular dependency
-            broadcaster.setTwitterHandler(twitterHandler);
         }
+
+        TwitterHandler twitterHandler = new TwitterHandler(properties.getProperty("consumerKey"),
+                properties.getProperty("consumerSecret"),
+                properties.getProperty("accessToken"),
+                properties.getProperty("accessTokenSecret"));
+        twitterHandler.setBroadcaster(broadcaster);
+
+        // Deal with circular dependency
+        broadcaster.setTwitterHandler(twitterHandler);
 
         logger.info("Starting webserver...");
         httpServer.requestHandler(router::accept).listen(8080);
