@@ -18,7 +18,6 @@ public class TweetBroadcaster {
     @Setter
     private TwitterHandler twitterHandler;
 
-    private final Object lock = new Object();
     private Multimap<String, SockJSSocket> channels = HashMultimap.create();
     private Multimap<SockJSSocket, String> clients = HashMultimap.create();
 
@@ -41,10 +40,8 @@ public class TweetBroadcaster {
                     // Registration command
                     case "REG":
                         if (channel.length() > 0 && channel.length() <= 30 && hashtag.matcher(channel).matches()) {
-                            synchronized (lock) {
-                                channels.put(channel, sock);
-                                clients.put(sock, channel);
-                            }
+                            channels.put(channel, sock);
+                            clients.put(sock, channel);
                             twitterHandler.trackTag(channel);
                         }
                         break;
@@ -55,12 +52,10 @@ public class TweetBroadcaster {
 
             });
             sock.endHandler(v -> {
-                synchronized (lock) {
-                    for (String channel : clients.get(sock)) {
-                        channels.remove(channel, sock);
-                    }
-                    clients.removeAll(sock);
+                for (String channel : clients.get(sock)) {
+                    channels.remove(channel, sock);
                 }
+                clients.removeAll(sock);
             });
         });
 
@@ -69,10 +64,8 @@ public class TweetBroadcaster {
 
 
     private void removeClientFromTag(SockJSSocket sock, String channel) {
-        synchronized (lock) {
-            channels.remove(channel, sock);
-            clients.remove(sock, channel);
-        }
+        channels.remove(channel, sock);
+        clients.remove(sock, channel);
         if (!channels.containsKey(channel)) {
             twitterHandler.untrackTag(channel);
         }
@@ -80,7 +73,8 @@ public class TweetBroadcaster {
 
     /**
      * Broadcasts the specified message to all channels associated with the specified tag
-     * @param tag Tag to broadcast the message to
+     *
+     * @param tag  Tag to broadcast the message to
      * @param text The message to send
      */
     public void broadcast(String tag, String text) {
