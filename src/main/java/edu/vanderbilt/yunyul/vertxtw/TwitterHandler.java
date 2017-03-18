@@ -46,7 +46,7 @@ public class TwitterHandler {
                 try {
                     String statusJson = objectMapper.writeValueAsString(new SimpleTweet(status));
                     for (HashtagEntity e : status.getHashtagEntities()) {
-                        broadcaster.broadcast(e.getText(), statusJson);
+                        broadcaster.broadcast(e.getText().toLowerCase(), statusJson);
                     }
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
@@ -101,6 +101,7 @@ public class TwitterHandler {
     public boolean trackTag(String tag) {
         if (tag.length() > 0 && tag.length() <= 30 && hashtag.matcher(tag).matches()) {
             if (trackedTags.add(tag.toLowerCase())) {
+                log("Tracking " + tag);
                 updateFilters();
             }
             return true;
@@ -116,6 +117,7 @@ public class TwitterHandler {
      */
     public void untrackTag(String tag) {
         if (trackedTags.remove(tag.toLowerCase())) {
+            log("Untracking " + tag);
             updateFilters();
         }
     }

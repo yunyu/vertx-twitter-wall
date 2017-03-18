@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdn.rawgit.com/Chalarangelo/mini.css/v2.1.0/dist/mini-default.min.css">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.2/sockjs.min.js"></script>
+    <script src='js/vertx-eventbus.js'></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.2.4/vue.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/autolinker/1.4.2/Autolinker.min.js"></script>
     <style>
@@ -223,6 +224,17 @@
             .replace(/>/g, '&gt;');
     }
 
+    var eb = new EventBus('/bus/');
+
+    var onMsg = function (e, m) {
+        var tweet = JSON.parse(m.body);
+        tweet.text = Autolinker.link(htmlEscape(tweet.text), {mention: "twitter", hashtag: "twitter"});
+        tweet.profileUrl = "https://twitter.com/" + tweet.username;
+        tweet.directUrl = "https://twitter.com/" + tweet.originalUsername + "/status/" + tweet.id;
+        app.tweets.unshift(tweet);
+        if (app.tweets.length > 150) app.tweets.pop();
+    };
+
     var app = new Vue({
         el: "#app",
         data: {
@@ -240,9 +252,9 @@
                     return;
                 }
                 if (this.trackedTag) {
-                    sock.send("UNREG " + this.trackedTag);
+                    eb.unregisterHandler("tweet." + this.trackedTag, onMsg);
                 }
-                sock.send("REG " + newTag);
+                eb.registerHandler("tweet." + newTag, onMsg);
                 this.trackedTag = newTag;
                 this.tweets = [];
                 this.tagInput = "";
@@ -260,16 +272,6 @@
         minutes = minutes < 10 ? '0' + minutes : minutes;
         return hours + ':' + minutes + ' ' + ampm;
     });
-
-    var sock = new SockJS(window.location.origin + '/sock');
-    sock.onmessage = function (e) {
-        var tweet = JSON.parse(e.data);
-        tweet.text = Autolinker.link(htmlEscape(tweet.text), {mention: "twitter", hashtag: "twitter"});
-        tweet.profileUrl = "https://twitter.com/" + tweet.username;
-        tweet.directUrl = "https://twitter.com/" + tweet.originalUsername + "/status/" + tweet.id;
-        app.tweets.unshift(tweet);
-        if (app.tweets.length > 150) app.tweets.pop();
-    };
 </script>
 </body>
 </html>
