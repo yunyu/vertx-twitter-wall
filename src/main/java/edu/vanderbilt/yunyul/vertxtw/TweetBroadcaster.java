@@ -16,8 +16,6 @@ import java.util.regex.Pattern;
 import static edu.vanderbilt.yunyul.vertxtw.TwitterWallBootstrap.log;
 
 public class TweetBroadcaster {
-    private static final Pattern hashtag = Pattern.compile("^\\w+$");
-
     @Setter
     private TwitterHandler twitterHandler;
 
@@ -43,9 +41,8 @@ public class TweetBroadcaster {
                 switch (cmd.toUpperCase()) {
                     // Registration command
                     case "REG":
-                        if (channel.length() > 0 && channel.length() <= 30 && hashtag.matcher(channel).matches()) {
+                        if (twitterHandler.trackTag(channel)) {
                             channels.put(channel, sock, true);
-                            twitterHandler.trackTag(channel);
                         }
                         break;
                     // Unregister command
@@ -71,7 +68,7 @@ public class TweetBroadcaster {
     }
 
     /**
-     * Broadcasts the specified message to all channels associated with the specified tag
+     * Broadcasts the specified message to all channels associated with the specified tag.
      *
      * @param tag  Tag to broadcast the message to
      * @param text The message to send

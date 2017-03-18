@@ -12,11 +12,13 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
 import static edu.vanderbilt.yunyul.vertxtw.TwitterWallBootstrap.log;
 
 public class TwitterHandler {
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final Pattern hashtag = Pattern.compile("^\\w+$");
 
     @Setter
     private TweetBroadcaster broadcaster;
@@ -80,10 +82,10 @@ public class TwitterHandler {
 
     private void updateFilters() {
         filterUpdateThread.execute(() -> {
-            // Rate limit filter updates, blocks until permit acquired
-            rateLimiter.acquire();
             // Don't ever run out of tracked tags to prevent API errors, they won't broadcast anything
             if (!trackedTags.isEmpty()) {
+                // Rate limit filter updates, blocks until permit acquired
+                rateLimiter.acquire();
                 // Blocking call, spins up new thread
                 twitterStream.filter(trackedTags.toArray(new String[0]));
             }
@@ -91,18 +93,24 @@ public class TwitterHandler {
     }
 
     /**
-     * Tracks the provided hashtag, if it isn't already tracked
+     * Tracks the provided hashtag, if it matches the format requirements and isn't already tracked.
      *
      * @param tag Hashtag to track
+     * @return Whether or not the tag was successfully tracked
      */
-    public void trackTag(String tag) {
-        if (trackedTags.add(tag.toLowerCase())) {
-            updateFilters();
+    public boolean trackTag(String tag) {
+        if (tag.length() > 0 && tag.length() <= 30 && hashtag.matcher(tag).matches()) {
+            if (trackedTags.add(tag.toLowerCase())) {
+                updateFilters();
+            }
+            return true;
+        } else {
+            return false;
         }
     }
 
     /**
-     * Untracks the provided hashtag
+     * Untracks the provided hashtag.
      *
      * @param tag Hashtag to untrack
      */
