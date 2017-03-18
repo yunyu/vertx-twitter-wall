@@ -2,6 +2,7 @@ package edu.vanderbilt.yunyul.vertxtw;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.Router;
@@ -18,13 +19,15 @@ public class TweetBroadcaster {
     @Setter
     private TwitterHandler twitterHandler;
 
-    private Table<String, SockJSSocket, Boolean> channels = HashBasedTable.create();
+    private final Context context;
+    private final Table<String, SockJSSocket, Boolean> channels = HashBasedTable.create();
     private static final Pattern hashtag = Pattern.compile("^\\w+$");
 
     public TweetBroadcaster(Router router, Vertx vertx) {
         log("Initializing broadcaster...");
-        SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2000);
 
+        this.context = vertx.getOrCreateContext();
+        SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2000);
         SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
 
         sockJSHandler.socketHandler(sock -> {
@@ -73,6 +76,7 @@ public class TweetBroadcaster {
      * @param text The message to send
      */
     public void broadcast(String tag, String text) {
-        channels.row(tag.toLowerCase()).keySet().forEach(client -> client.write(Buffer.buffer(text)));
+        context.runOnContext(v -> channels.row(tag.toLowerCase()).keySet()
+                        .forEach(client -> client.write(Buffer.buffer(text))));
     }
 }

@@ -20,20 +20,20 @@ public class TwitterHandler {
     private TweetBroadcaster broadcaster;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private final TwitterStream twitterStream;
-    private Set<String> trackedTags = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+    private final Set<String> trackedTags = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
     private boolean filterUpdateQueued = false;
 
     public TwitterHandler(String consumerKey, String consumerSecret, String accessToken, String accessTokenSecret) {
         log("Initializing Twitter handler...");
+
         ConfigurationBuilder configurationBuilder = new ConfigurationBuilder()
                 .setOAuthConsumerKey(consumerKey)
                 .setOAuthConsumerSecret(consumerSecret)
                 .setOAuthAccessToken(accessToken)
                 .setOAuthAccessTokenSecret(accessTokenSecret)
                 .setDebugEnabled(false);
-        twitterStream = new TwitterStreamFactory(configurationBuilder.build()).getInstance();
+        TwitterStream twitterStream = new TwitterStreamFactory(configurationBuilder.build()).getInstance();
 
         twitterStream.addListener(new StatusListener() {
             @Override
