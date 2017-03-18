@@ -232,20 +232,20 @@
         },
         methods: {
             onSubmit: function () {
-                var newTag = app.tagInput;
+                var newTag = this.tagInput;
                 if (newTag.startsWith("#")) {
                     newTag = newTag.substr(1);
                 }
-                if (newTag.length == 0 || newTag.length > 30 || !/^\w+$/.test(newTag) || newTag == app.trackedTag) {
+                if (newTag.length == 0 || newTag.length > 30 || !/^\w+$/.test(newTag) || newTag == this.trackedTag) {
                     return;
                 }
-                if (app.trackedTag) {
-                    sock.send("UNREG " + app.trackedTag);
+                if (this.trackedTag) {
+                    sock.send("UNREG " + this.trackedTag);
                 }
                 sock.send("REG " + newTag);
-                app.tagInput = "";
-                app.trackedTag = newTag;
-                app.tweets = [];
+                this.trackedTag = newTag;
+                this.tweets = [];
+                this.tagInput = "";
             }
         }
     });
