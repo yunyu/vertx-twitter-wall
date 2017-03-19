@@ -226,15 +226,27 @@
     }
 
     var eb = new EventBus('/bus/');
+    var maxTweets = 150;
 
-    var onMsg = function (e, m) {
-        var tweet = JSON.parse(m.body);
+    var parseTweet = function (tweet) {
         tweet.text = Autolinker.link(htmlEscape(tweet.text), {mention: "twitter", hashtag: "twitter"});
         tweet.profileUrl = "https://twitter.com/" + tweet.username;
         tweet.directUrl = "https://twitter.com/" + tweet.originalUsername + "/status/" + tweet.id;
-        app.tweets.unshift(tweet);
-        // Array isn't actually sorted by statusId
-        app.tweets = _.uniqBy(_.orderBy(app.tweets, "time", "desc"), "statusId").slice(0, 150);
+        return tweet;
+    };
+
+    var onMsg = function (e, m) {
+        var body = JSON.parse(m.body);
+        if (Array.isArray(body)) {
+            console.log("Processing bulk tweet");
+            body.forEach(function (el) {
+                app.tweets.push(parseTweet(el));
+            });
+            app.tweets = _.uniqBy(_.orderBy(app.tweets, "time", "desc"), "statusId").slice(0, maxTweets);
+        } else {
+            app.tweets.unshift(parseTweet(body));
+            if (app.tweets.length > maxTweets) app.tweets.pop();
+        }
     };
 
     var app = new Vue({

@@ -36,8 +36,7 @@ public class TweetBroadcaster {
             if (be.type() == BridgeEventType.REGISTER) {
                 String tag = getHashtag(be);
                 if (tag != null && twitterStreamHandler.trackTag(tag)) {
-                    twitterStreamHandler.searchForTweets(tag,
-                            tweets -> tweets.forEach(tweet -> broadcast(tag, tweet)));
+                    twitterStreamHandler.searchForTweets(tag, tweets -> broadcast(tag, tweets));
                     tagRegistrantCounts.add(tag);
                 } else {
                     be.complete(false);

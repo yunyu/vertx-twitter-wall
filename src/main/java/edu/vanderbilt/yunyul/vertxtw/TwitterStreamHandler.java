@@ -156,22 +156,23 @@ public class TwitterStreamHandler {
      * @param tag      The hashtag to search for
      * @param callback The callback to call with the results as JSON strings
      */
-    public void searchForTweets(String tag, Handler<List<String>> callback) {
+    public void searchForTweets(String tag, Handler<String> callback) {
         if (isTagValid(tag)) {
             searchThread.execute(() -> {
                 searchRateLimiter.acquire();
                 try {
-                    callback.handle(twitter.search(new Query("#" + tag)).getTweets().stream()
-                            .map(SimpleTweet::new)
-                            .sorted(Comparator.comparingLong(SimpleTweet::getTime))
-                            .map(this::safeToJsonString)
-                            .collect(Collectors.toList()));
+                    callback.handle(safeToJsonString(
+                            twitter.search(new Query("#" + tag)).getTweets().stream()
+                                    .map(SimpleTweet::new)
+                                    .sorted(Comparator.comparingLong(SimpleTweet::getTime).reversed())
+                                    .collect(Collectors.toList())
+                    ));
                 } catch (TwitterException e) {
                     e.printStackTrace();
                 }
             });
         } else {
-            callback.handle(Collections.emptyList());
+            callback.handle(safeToJsonString(Collections.emptyList()));
         }
     }
 
