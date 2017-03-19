@@ -11,11 +11,17 @@ Usage
 
 1. Build using `mvn clean package`
 2. Move the JAR in `/target` to your preferred location
-3. Acquire credentials, see [instructions](http://stackoverflow.com/a/12335636)
-4. Put credentials and bind port in `config.json` (see `config.example.json`)
-5. Move `config.json` to same directory as the JAR
-6. Run `java -jar vertx-twitter-wall-1.0-SNAPSHOT.jar -conf config.json`
-7. Visit `localhost:<port in config>`
+3. Fill in `config.json` (see Configuration section and `config.example.json`)
+4. Move `config.json` to same directory as the JAR
+5. Run `java -jar vertx-twitter-wall-1.0-SNAPSHOT.jar -conf config.json`
+6. Visit `localhost:<port in config>`
+
+Configuration
+--
+
+* The tokens and secrets can be obtained through these [instructions](http://stackoverflow.com/a/12335636).
+* `filterUpdateRateLimit` is how many max stream reconnections to allow per second. Twitter does not document the rate limit for this. Don't change this without good reason.
+* `searchRateLimit` controls the max amount of recent tweets (displayed initially) that can be looked up per second. Don't change this without good reason.
 
 TODO
 --
