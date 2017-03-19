@@ -112,6 +112,7 @@ public class TwitterStreamHandler {
         filterUpdateThread.schedule(() -> {
             // Rate limit filter updates, blocks until permit acquired
             filterUpdateRateLimiter.acquire();
+            filterUpdateQueued.set(false);
             String[] tagArr = trackedTags.toArray(new String[0]);
             // Don't ever run out of tracked tags to prevent API errors, they won't broadcast anything
             // Similarly, don't update filters if tagArr is a subset
@@ -121,8 +122,7 @@ public class TwitterStreamHandler {
                 // Blocking call, spins up new thread
                 twitterStream.filter(tagArr);
             }
-            filterUpdateQueued.set(false);
-        }, 50, TimeUnit.MILLISECONDS); // "Bunch up" requests within 50ms
+        }, 500, TimeUnit.MILLISECONDS); // "Bunch up" requests within 500ms
     }
 
     private boolean isTagValid(String tag) {
