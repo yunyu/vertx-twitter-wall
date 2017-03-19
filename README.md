@@ -21,4 +21,3 @@ TODO
 --
 
 * Implement multiple hashtag tracking on the frontend
-* Display old tweets initially (?)

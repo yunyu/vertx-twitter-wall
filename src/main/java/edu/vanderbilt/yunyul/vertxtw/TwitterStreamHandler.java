@@ -34,7 +34,7 @@ public class TwitterStreamHandler {
 
     // Streaming API already uses non Vert.x thread, no need to use one for updates either
     private final Executor filterUpdateThread = Executors.newSingleThreadExecutor();
-    private final RateLimiter filterUpdateRateLimiter = RateLimiter.create(2);
+    private final RateLimiter filterUpdateRateLimiter = RateLimiter.create(1);
     private final Executor searchThread = Executors.newSingleThreadExecutor();
     private final RateLimiter searchRateLimiter = RateLimiter.create(1);
 
@@ -200,7 +200,7 @@ public class TwitterStreamHandler {
             } else {
                 this.text = status.getText();
                 this.originalUsername = this.username;
-                this.id = Long.toString(status.getId());
+                this.id = this.statusId;
             }
         }
     }

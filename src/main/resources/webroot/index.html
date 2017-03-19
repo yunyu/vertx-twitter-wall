@@ -9,6 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.2/sockjs.min.js"></script>
     <script src="js/vertx-eventbus.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.2.4/vue.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/autolinker/1.4.2/Autolinker.min.js"></script>
     <style>
         *, html {
@@ -232,7 +233,8 @@
         tweet.profileUrl = "https://twitter.com/" + tweet.username;
         tweet.directUrl = "https://twitter.com/" + tweet.originalUsername + "/status/" + tweet.id;
         app.tweets.unshift(tweet);
-        if (app.tweets.length > 150) app.tweets.pop();
+        // Array isn't actually sorted by statusId
+        app.tweets = _.uniqBy(_.orderBy(app.tweets, "time", "desc"), "statusId").slice(0, 150);
     };
 
     var app = new Vue({
