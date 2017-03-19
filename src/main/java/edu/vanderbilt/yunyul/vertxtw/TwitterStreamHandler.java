@@ -39,9 +39,11 @@ public class TwitterStreamHandler {
     // Twitter does not make this information (stream disconnect/reconnect) information public
     // See https://dev.twitter.com/streaming/overview/connecting#rate-limiting
     // This value is an experimental guess
-    private final RateLimiter filterUpdateRateLimiter = RateLimiter.create(3);
+    private final RateLimiter filterUpdateRateLimiter = RateLimiter.create(0.25);
     private final Executor searchThread = Executors.newSingleThreadExecutor();
-    private final RateLimiter searchRateLimiter = RateLimiter.create(1);
+    // There's not too much point in making this configurable, as it's only used on registration
+    // See https://dev.twitter.com/rest/reference/get/search/tweets
+    private final RateLimiter searchRateLimiter = RateLimiter.create(0.7);
 
     static {
         System.setProperty("twitter4j.loggerFactory", "twitter4j.JULLoggerFactory");
@@ -166,6 +168,9 @@ public class TwitterStreamHandler {
             searchThread.execute(() -> {
                 searchRateLimiter.acquire();
                 try {
+                    Query query = new Query("#" + tag);
+                    query.setResultType(Query.RECENT);
+                    query.count(30);
                     callback.handle(safeToJsonString(
                             twitter.search(new Query("#" + tag)).getTweets().stream()
                                     .map(SimpleTweet::new)
