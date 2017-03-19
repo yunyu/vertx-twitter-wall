@@ -49,7 +49,7 @@ public class TwitterStreamHandler {
         // See https://dev.twitter.com/streaming/overview/connecting#rate-limiting
         // This value is an experimental guess
         this.filterUpdateRateLimiter = RateLimiter.create(
-                vertxConfig.getDouble("filterUpdateRateLimit", 0.4)
+                vertxConfig.getDouble("filterUpdateRateLimit", 0.3)
         );
 
         // (180+450)/900
