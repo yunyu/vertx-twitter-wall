@@ -140,18 +140,16 @@ public class TwitterStreamHandler {
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
                 Deque<String> currQueue;
                 boolean rotateElements;
-                if (streamConnected.get()) {
+                if (!initialTweetsQueue.isEmpty()) {
                     currQueue = initialTweetsQueue;
-                    if (!currQueue.isEmpty()) {
-                        log("Tracking initial tweets: " + currQueue.toString());
-                    }
+                    log("Tracking initial tweets: " + currQueue.toString());
                     rotateElements = false;
-                } else {
+                } else if (!streamConnected.get()) {
                     currQueue = tagQueue;
-                    if (!currQueue.isEmpty()) {
-                        log("Tracking tag queue: " + currQueue.toString());
-                    }
+                    log("Tracking tag queue: " + currQueue.toString());
                     rotateElements = true;
+                } else {
+                    return;
                 }
                 List<String> tagsToSearch = new ArrayList<>();
                 if (!currQueue.isEmpty()) {
