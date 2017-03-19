@@ -5,5 +5,5 @@
   "accessTokenSecret": "my_token_secret",
   "port": 8080,
   "filterUpdateRateLimit": 0.3,
-  "searchPeriodInSeconds": 3.0
+  "searchPeriodInSeconds": 2.0
 }

@@ -54,21 +54,32 @@ public class TwitterStreamHandler {
                 vertxConfig.getDouble("filterUpdateRateLimit", 0.3)
         );
 
+        String consumerKey = vertxConfig.getString("consumerKey");
+        String consumerSecret = vertxConfig.getString("consumerSecret");
+        String accessToken = vertxConfig.getString("accessToken");
+        String accessTokenSecret = vertxConfig.getString("accessTokenSecret");
+
         Configuration config = new ConfigurationBuilder()
-                .setOAuthConsumerKey(vertxConfig.getString("consumerKey"))
-                .setOAuthConsumerSecret(vertxConfig.getString("consumerSecret"))
-                .setOAuthAccessToken(vertxConfig.getString("accessToken"))
-                .setOAuthAccessTokenSecret(vertxConfig.getString("accessTokenSecret"))
+                .setOAuthConsumerKey(consumerKey)
+                .setOAuthConsumerSecret(consumerSecret)
+                .setOAuthAccessToken(accessToken)
+                .setOAuthAccessTokenSecret(accessTokenSecret)
                 .setDebugEnabled(false)
                 .build();
         this.twitterStream = new TwitterStreamFactory(config).getInstance();
 
         Configuration appConfig = new ConfigurationBuilder()
-                .setOAuthConsumerKey(vertxConfig.getString("consumerKey"))
-                .setOAuthConsumerSecret(vertxConfig.getString("consumerSecret"))
+                .setOAuthConsumerKey(consumerKey)
+                .setOAuthConsumerSecret(consumerSecret)
                 .setDebugEnabled(false)
+                .setApplicationOnlyAuthEnabled(true)
                 .build();
         this.twitter = new TwitterFactory(appConfig).getInstance();
+        try {
+            twitter.getOAuth2Token();
+        } catch (TwitterException e) {
+            e.printStackTrace();
+        }
 
         twitterStream.addListener(new StatusListener() {
             @Override
@@ -127,65 +138,67 @@ public class TwitterStreamHandler {
 
         // Handle initial tweet loads, also fall back to search API if connection hang
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-            Deque<String> currQueue;
-            boolean rotateElements;
-            if (streamConnected.get()) {
-                currQueue = initialTweetsQueue;
-                if (!currQueue.isEmpty()) {
-                    log("Tracking initial tweets: " + currQueue.toString());
+                Deque<String> currQueue;
+                boolean rotateElements;
+                if (streamConnected.get()) {
+                    currQueue = initialTweetsQueue;
+                    if (!currQueue.isEmpty()) {
+                        log("Tracking initial tweets: " + currQueue.toString());
+                    }
+                    rotateElements = false;
+                } else {
+                    currQueue = tagQueue;
+                    if (!currQueue.isEmpty()) {
+                        log("Tracking tag queue: " + currQueue.toString());
+                    }
+                    rotateElements = true;
                 }
-                rotateElements = false;
-            } else {
-                currQueue = tagQueue;
+                List<String> tagsToSearch = new ArrayList<>();
                 if (!currQueue.isEmpty()) {
-                    log("Tracking tag queue: " + currQueue.toString());
-                }
-                rotateElements = true;
-            }
-            List<String> tagsToSearch = new ArrayList<>();
-            if (!currQueue.isEmpty()) {
-                if (currQueue.size() > 10) {
-                    for (int i = 0; i < 10; i++) {
-                        String el = currQueue.removeFirst();
-                        tagsToSearch.add(el);
-                        if (rotateElements) {
-                            currQueue.addLast(el);
+                    // If over 10 elements, "rotate" the elements in the queue
+                    // This is susceptible to a small DoS if elements are constantly added
+                    // But this is not a serious project
+                    if (currQueue.size() > 10) {
+                        for (int i = 0; i < 10; i++) {
+                            String el = currQueue.removeFirst();
+                            tagsToSearch.add(el);
+                            if (rotateElements) {
+                                currQueue.addLast(el);
+                            }
+                        }
+                    } else {
+                        tagsToSearch.addAll(currQueue);
+                        if (!rotateElements) {
+                            currQueue.clear();
                         }
                     }
-                } else {
-                    tagsToSearch.addAll(currQueue);
-                    if (!rotateElements) {
-                        currQueue.clear();
-                    }
                 }
-            }
-            if (tagsToSearch.isEmpty()) {
-                return;
-            }
-            String queryString = orJoiner.join(tagsToSearch.stream()
-                    .map(el -> "#" + el).collect(Collectors.toList()));
-            try {
-                Query query = new Query(queryString);
-                query.setResultType(Query.RECENT);
-                query.count(100);
-                List<Status> statuses = twitter.search(query).getTweets();
-                for (String tag : tagsToSearch) {
-                    List<SimpleTweet> tweetsMatchingTag = statuses.stream()
-                            .filter(status -> {
-                                for (HashtagEntity e : status.getHashtagEntities()) {
-                                    if (e.getText().equalsIgnoreCase(tag)) {
-                                        return true;
+                if (tagsToSearch.isEmpty()) {
+                    return;
+                }
+                String queryString = orJoiner.join(tagsToSearch.stream()
+                        .map(el -> "#" + el).collect(Collectors.toList()));
+                try {
+                    Query query = new Query(queryString);
+                    query.setResultType(Query.RECENT);
+                    query.count(100);
+                    List<Status> statuses = twitter.search(query).getTweets();
+                    for (String tag : tagsToSearch) {
+                        List<SimpleTweet> tweetsMatchingTag = statuses.stream()
+                                .filter(status -> {
+                                    for (HashtagEntity e : status.getHashtagEntities()) {
+                                        if (e.getText().equalsIgnoreCase(tag)) {
+                                            return true;
+                                        }
                                     }
-                                }
-                                return false;
-                            }).map(SimpleTweet::new).collect(Collectors.toList());
-                    broadcaster.broadcast(tag.toLowerCase(), safeToJsonString(tweetsMatchingTag));
+                                    return false;
+                                }).map(SimpleTweet::new).collect(Collectors.toList());
+                        broadcaster.broadcast(tag.toLowerCase(), safeToJsonString(tweetsMatchingTag));
+                    }
+                } catch (TwitterException e) {
+                    e.printStackTrace();
                 }
-            } catch (TwitterException e) {
-                e.printStackTrace();
-            }
-
-        }, 0, (long) (vertxConfig.getDouble("searchPeriodInSeconds", 3.0D) * 1000), TimeUnit.MILLISECONDS);
+        }, 0, (long) (vertxConfig.getDouble("searchPeriodInSeconds", 2.0D) * 1000), TimeUnit.MILLISECONDS);
     }
 
     private void updateFilters() {
@@ -263,6 +276,7 @@ public class TwitterStreamHandler {
      * @param tag The hashtag to search for
      */
     public void sendInitialTweetsFor(String tag) {
+        log("Adding to initial tweets queue: " + tag);
         initialTweetsQueue.add(tag);
     }
 
