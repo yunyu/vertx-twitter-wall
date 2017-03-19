@@ -1,21 +1,15 @@
 package edu.vanderbilt.yunyul.vertxtw;
 
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.ErrorHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.Properties;
-import java.util.logging.Logger;
-
 public class TwitterWallVerticle extends AbstractVerticle {
-    private static final Logger logger = Logger.getLogger("TwitterWall");
+    private static final Logger logger = LoggerFactory.getLogger(TwitterWallVerticle.class);
 
     @Override
     public void start() throws Exception {
