@@ -3,5 +3,7 @@
   "consumerSecret": "my_secret",
   "accessToken": "my_token",
   "accessTokenSecret": "my_token_secret",
-  "port": 8080
+  "port": 8080,
+  "filterUpdateRateLimit": 0.25,
+  "searchRateLimit": 0.7
 }

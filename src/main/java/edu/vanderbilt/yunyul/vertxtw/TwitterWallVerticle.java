@@ -21,11 +21,7 @@ public class TwitterWallVerticle extends AbstractVerticle {
         router.route().handler(StaticHandler.create());
         router.route().failureHandler(ErrorHandler.create());
 
-        TwitterStreamHandler twitterStreamHandler = new TwitterStreamHandler(
-                config().getString("consumerKey"),
-                config().getString("consumerSecret"),
-                config().getString("accessToken"),
-                config().getString("accessTokenSecret"));
+        TwitterStreamHandler twitterStreamHandler = new TwitterStreamHandler(config());
 
         // Register circular dependency
         twitterStreamHandler.setBroadcaster(broadcaster);

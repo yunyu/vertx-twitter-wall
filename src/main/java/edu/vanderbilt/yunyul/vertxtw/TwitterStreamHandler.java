@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.RateLimiter;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
 import lombok.Data;
 import lombok.Setter;
 import twitter4j.*;
@@ -36,30 +37,35 @@ public class TwitterStreamHandler {
 
     // Streaming API already uses non Vert.x thread, no need to use one for updates either
     private final Executor filterUpdateThread = Executors.newSingleThreadExecutor();
-    // Twitter does not make this information (stream disconnect/reconnect) information public
-    // See https://dev.twitter.com/streaming/overview/connecting#rate-limiting
-    // This value is an experimental guess
-    private final RateLimiter filterUpdateRateLimiter = RateLimiter.create(0.25);
+    private final RateLimiter filterUpdateRateLimiter;
     private final Executor searchThread = Executors.newSingleThreadExecutor();
-    // There's not too much point in making this configurable, as it's only used on registration
-    // See https://dev.twitter.com/rest/reference/get/search/tweets
-    private final RateLimiter searchRateLimiter = RateLimiter.create(0.7);
+    private final RateLimiter searchRateLimiter;
 
     static {
         System.setProperty("twitter4j.loggerFactory", "twitter4j.JULLoggerFactory");
     }
 
-    public TwitterStreamHandler(String consumerKey,
-                                String consumerSecret,
-                                String accessToken,
-                                String accessTokenSecret) {
+    public TwitterStreamHandler(JsonObject vertxConfig) {
         log("Initializing Twitter handler...");
 
+        // Twitter does not make this information (stream disconnect/reconnect) information public
+        // See https://dev.twitter.com/streaming/overview/connecting#rate-limiting
+        // This value is an experimental guess
+        this.filterUpdateRateLimiter = RateLimiter.create(
+                vertxConfig.getDouble("filterUpdateRateLimit", 0.25)
+        );
+
+        // (180+450)/900
+        // See https://dev.twitter.com/rest/reference/get/search/tweets
+        this.searchRateLimiter = RateLimiter.create(
+                vertxConfig.getDouble("searchRateLimit", 0.7)
+        );
+
         Configuration config = new ConfigurationBuilder()
-                .setOAuthConsumerKey(consumerKey)
-                .setOAuthConsumerSecret(consumerSecret)
-                .setOAuthAccessToken(accessToken)
-                .setOAuthAccessTokenSecret(accessTokenSecret)
+                .setOAuthConsumerKey(vertxConfig.getString("consumerKey"))
+                .setOAuthConsumerSecret(vertxConfig.getString("consumerSecret"))
+                .setOAuthAccessToken(vertxConfig.getString("accessToken"))
+                .setOAuthAccessTokenSecret(vertxConfig.getString("accessTokenSecret"))
                 .setDebugEnabled(false)
                 .build();
         this.twitter = new TwitterFactory(config).getInstance();
