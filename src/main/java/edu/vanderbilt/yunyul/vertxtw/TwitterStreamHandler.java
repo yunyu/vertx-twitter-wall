@@ -31,6 +31,10 @@ public class TwitterStreamHandler {
     private final Executor filterUpdateThread = Executors.newSingleThreadExecutor();
     private final RateLimiter rateLimiter = RateLimiter.create(2);
 
+    static {
+        System.setProperty("twitter4j.loggerFactory", "twitter4j.JULLoggerFactory");
+    }
+
     public TwitterStreamHandler(String consumerKey,
                                 String consumerSecret,
                                 String accessToken,
