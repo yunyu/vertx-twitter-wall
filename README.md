@@ -6,6 +6,8 @@ Vert.x Twitter Wall
 
 Twitter Wall project for Vert.x. Streams tweets using Twitter4J through the SockJS event bus bridge. Uses mini.css and vue.js on the frontend.
 
+Uses the Twitter search API to display initial tweets and upgrades to the streaming API when available.
+
 Usage
 --
 
