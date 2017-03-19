@@ -61,8 +61,14 @@ public class TwitterStreamHandler {
                 .setOAuthAccessTokenSecret(vertxConfig.getString("accessTokenSecret"))
                 .setDebugEnabled(false)
                 .build();
-        this.twitter = new TwitterFactory(config).getInstance();
         this.twitterStream = new TwitterStreamFactory(config).getInstance();
+
+        Configuration appConfig = new ConfigurationBuilder()
+                .setOAuthConsumerKey(vertxConfig.getString("consumerKey"))
+                .setOAuthConsumerSecret(vertxConfig.getString("consumerSecret"))
+                .setDebugEnabled(false)
+                .build();
+        this.twitter = new TwitterFactory(appConfig).getInstance();
 
         twitterStream.addListener(new StatusListener() {
             @Override
@@ -119,23 +125,25 @@ public class TwitterStreamHandler {
             }
         });
 
-        // (180+450)/900
-        // See https://dev.twitter.com/rest/reference/get/search/tweets
-        double searchRateInMs = Math.ceil(1000D / vertxConfig.getDouble("searchRateLimit", 0.7));
-
         // Handle initial tweet loads, also fall back to search API if connection hang
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
             Deque<String> currQueue;
             boolean rotateElements;
             if (streamConnected.get()) {
                 currQueue = initialTweetsQueue;
+                if (!currQueue.isEmpty()) {
+                    log("Tracking initial tweets: " + currQueue.toString());
+                }
                 rotateElements = false;
             } else {
                 currQueue = tagQueue;
+                if (!currQueue.isEmpty()) {
+                    log("Tracking tag queue: " + currQueue.toString());
+                }
                 rotateElements = true;
             }
             List<String> tagsToSearch = new ArrayList<>();
-            if (!streamConnected.get() && !currQueue.isEmpty()) {
+            if (!currQueue.isEmpty()) {
                 if (currQueue.size() > 10) {
                     for (int i = 0; i < 10; i++) {
                         String el = currQueue.removeFirst();
@@ -177,7 +185,7 @@ public class TwitterStreamHandler {
                 e.printStackTrace();
             }
 
-        }, 0, (long) searchRateInMs, TimeUnit.MILLISECONDS);
+        }, 0, (long) (vertxConfig.getDouble("searchPeriodInSeconds", 3.0D) * 1000), TimeUnit.MILLISECONDS);
     }
 
     private void updateFilters() {
