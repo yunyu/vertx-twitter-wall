@@ -2,8 +2,8 @@ package edu.vanderbilt.yunyul.vertxtw;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.RateLimiter;
-import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import lombok.Data;
 import lombok.Setter;
@@ -22,21 +22,22 @@ import static edu.vanderbilt.yunyul.vertxtw.TwitterWallVerticle.log;
 public class TwitterStreamHandler {
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final Pattern hashtag = Pattern.compile("^\\w+$");
+    private static final Joiner orJoiner = Joiner.on(" OR ");
 
     @Setter
     private TweetBroadcaster broadcaster;
     private String[] lastTrackedTags = new String[0];
     private AtomicBoolean filterUpdateQueued = new AtomicBoolean(false);
+    private AtomicBoolean streamConnected = new AtomicBoolean(false);
 
     private final Twitter twitter;
     private final TwitterStream twitterStream;
     private final Set<String> trackedTags = new ConcurrentSkipListSet<>();
+    private final Deque<String> tagQueue = new ConcurrentLinkedDeque<>();
 
     // Streaming API already uses non Vert.x thread, no need to use one for updates either
     private final ScheduledExecutorService filterUpdateThread = Executors.newSingleThreadScheduledExecutor();
     private final RateLimiter filterUpdateRateLimiter;
-    private final Executor searchThread = Executors.newSingleThreadExecutor();
-    private final RateLimiter searchRateLimiter;
 
     static {
         System.setProperty("twitter4j.loggerFactory", "twitter4j.JULLoggerFactory");
@@ -50,12 +51,6 @@ public class TwitterStreamHandler {
         // This value is an experimental guess
         this.filterUpdateRateLimiter = RateLimiter.create(
                 vertxConfig.getDouble("filterUpdateRateLimit", 0.3)
-        );
-
-        // (180+450)/900
-        // See https://dev.twitter.com/rest/reference/get/search/tweets
-        this.searchRateLimiter = RateLimiter.create(
-                vertxConfig.getDouble("searchRateLimit", 0.7)
         );
 
         Configuration config = new ConfigurationBuilder()
@@ -102,6 +97,69 @@ public class TwitterStreamHandler {
 
             }
         });
+
+        twitterStream.addConnectionLifeCycleListener(new ConnectionLifeCycleListener() {
+            @Override
+            public void onConnect() {
+                streamConnected.set(true);
+                tagQueue.clear();
+                tagQueue.addAll(trackedTags);
+                log("Registered stream connection");
+            }
+
+            @Override
+            public void onDisconnect() {
+
+            }
+
+            @Override
+            public void onCleanUp() {
+
+            }
+        });
+
+        // (180+450)/900
+        // See https://dev.twitter.com/rest/reference/get/search/tweets
+        double searchRateInMs = 1000D / vertxConfig.getDouble("searchRateLimit", 0.7);
+
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            if (!streamConnected.get() && !tagQueue.isEmpty()) {
+                List<String> tagsToSearch;
+                if (tagQueue.size() > 10) {
+                    tagsToSearch = new ArrayList<>();
+                    for (int i = 0; i < 10; i++) {
+                        String el = tagQueue.removeFirst();
+                        tagsToSearch.add(el);
+                        tagQueue.addLast(el);
+                    }
+                } else {
+                    tagsToSearch = new ArrayList<>(tagQueue);
+                }
+                String queryString = orJoiner.join(tagsToSearch.stream()
+                        .map(el -> "#" + el).collect(Collectors.toList()));
+                try {
+                    Query query = new Query(queryString);
+                    query.setResultType(Query.RECENT);
+                    query.count(100);
+                    List<Status> statuses = twitter.search(query).getTweets();
+                    for (String tag : tagsToSearch) {
+                        List<SimpleTweet> tweetsMatchingTag = statuses.stream()
+                                .filter(status -> {
+                                    for (HashtagEntity e : status.getHashtagEntities()) {
+                                        if (e.getText().equalsIgnoreCase(tag)) {
+                                            return true;
+                                        }
+                                    }
+                                    return false;
+                                }).map(SimpleTweet::new).collect(Collectors.toList());
+                        broadcaster.broadcast(tag.toLowerCase(), safeToJsonString(tweetsMatchingTag));
+                    }
+                } catch (TwitterException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }, 0, (long) searchRateInMs, TimeUnit.MILLISECONDS);
     }
 
     private void updateFilters() {
@@ -121,6 +179,8 @@ public class TwitterStreamHandler {
                 log("Filtering to " + Arrays.toString(tagArr));
                 // Blocking call, spins up new thread
                 twitterStream.filter(tagArr);
+                log("Stream disconnected");
+                streamConnected.set(false);
             }
         }, 500, TimeUnit.MILLISECONDS); // "Bunch up" requests within 500ms
     }
@@ -145,8 +205,10 @@ public class TwitterStreamHandler {
      */
     public boolean trackTag(String tag) {
         if (isTagValid(tag)) {
-            if (trackedTags.add(tag.toLowerCase())) {
+            tag = tag.toLowerCase();
+            if (trackedTags.add(tag)) {
                 log("Tracking " + tag);
+                tagQueue.addFirst(tag);
                 updateFilters();
             }
             return true;
@@ -161,38 +223,11 @@ public class TwitterStreamHandler {
      * @param tag Hashtag to untrack
      */
     public void untrackTag(String tag) {
-        if (trackedTags.remove(tag.toLowerCase())) {
+        tag = tag.toLowerCase();
+        if (trackedTags.remove(tag)) {
             log("Untracking " + tag);
+            tagQueue.remove(tag);
             updateFilters();
-        }
-    }
-
-    /**
-     * Performs a one-time search for tweets matching the provided hashtag
-     *
-     * @param tag      The hashtag to search for
-     * @param callback The callback to call with the results as JSON strings
-     */
-    public void searchForTweets(String tag, Handler<String> callback) {
-        if (isTagValid(tag)) {
-            searchThread.execute(() -> {
-                searchRateLimiter.acquire();
-                try {
-                    Query query = new Query("#" + tag);
-                    query.setResultType(Query.RECENT);
-                    query.count(30);
-                    callback.handle(safeToJsonString(
-                            twitter.search(new Query("#" + tag)).getTweets().stream()
-                                    .map(SimpleTweet::new)
-                                    .sorted(Comparator.comparingLong(SimpleTweet::getTime).reversed())
-                                    .collect(Collectors.toList())
-                    ));
-                } catch (TwitterException e) {
-                    e.printStackTrace();
-                }
-            });
-        } else {
-            callback.handle(safeToJsonString(Collections.emptyList()));
         }
     }
 
