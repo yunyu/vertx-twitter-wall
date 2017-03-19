@@ -11,10 +11,7 @@ import twitter4j.*;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
@@ -28,7 +25,7 @@ public class TwitterStreamHandler {
 
     @Setter
     private TweetBroadcaster broadcaster;
-    private String[] lastTrackedTags;
+    private String[] lastTrackedTags = new String[0];
     private AtomicBoolean filterUpdateQueued = new AtomicBoolean(false);
 
     private final Twitter twitter;
@@ -117,8 +114,10 @@ public class TwitterStreamHandler {
             filterUpdateRateLimiter.acquire();
             String[] tagArr = trackedTags.toArray(new String[0]);
             // Don't ever run out of tracked tags to prevent API errors, they won't broadcast anything
-            if (tagArr.length > 0 && !Arrays.equals(tagArr, lastTrackedTags)) {
+            // Similarly, don't update filters if tagArr is a subset
+            if (tagArr.length > 0 && !Arrays.asList(lastTrackedTags).containsAll(Arrays.asList(tagArr))) {
                 lastTrackedTags = tagArr;
+                log("Filtering to " + Arrays.toString(tagArr));
                 // Blocking call, spins up new thread
                 twitterStream.filter(tagArr);
             }
