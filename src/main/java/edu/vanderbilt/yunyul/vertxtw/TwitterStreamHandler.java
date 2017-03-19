@@ -2,7 +2,6 @@ package edu.vanderbilt.yunyul.vertxtw;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.RateLimiter;
 import io.vertx.core.Handler;
 import lombok.Data;
@@ -11,7 +10,10 @@ import twitter4j.*;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -34,7 +36,10 @@ public class TwitterStreamHandler {
 
     // Streaming API already uses non Vert.x thread, no need to use one for updates either
     private final Executor filterUpdateThread = Executors.newSingleThreadExecutor();
-    private final RateLimiter filterUpdateRateLimiter = RateLimiter.create(1);
+    // Twitter does not make this information (stream disconnect/reconnect) information public
+    // See https://dev.twitter.com/streaming/overview/connecting#rate-limiting
+    // This value is an experimental guess
+    private final RateLimiter filterUpdateRateLimiter = RateLimiter.create(3);
     private final Executor searchThread = Executors.newSingleThreadExecutor();
     private final RateLimiter searchRateLimiter = RateLimiter.create(1);
 

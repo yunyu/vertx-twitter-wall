@@ -9,7 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.2/sockjs.min.js"></script>
     <script src="js/vertx-eventbus.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.2.4/vue.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"></script>
+    <script src="js/lodash.custom.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/autolinker/1.4.2/Autolinker.min.js"></script>
     <style>
         *, html {
@@ -238,10 +238,10 @@
     var onMsg = function (e, m) {
         var body = JSON.parse(m.body);
         if (Array.isArray(body)) {
-            console.log("Processing bulk tweet");
             body.forEach(function (el) {
                 app.tweets.push(parseTweet(el));
             });
+            // This is a broadcast, so we do need to dedupe and sort
             app.tweets = _.uniqBy(_.orderBy(app.tweets, "time", "desc"), "statusId").slice(0, maxTweets);
         } else {
             app.tweets.unshift(parseTweet(body));
