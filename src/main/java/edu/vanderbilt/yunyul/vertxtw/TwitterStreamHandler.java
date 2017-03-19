@@ -2,18 +2,21 @@ package edu.vanderbilt.yunyul.vertxtw;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.RateLimiter;
+import io.vertx.core.Handler;
 import lombok.Data;
 import lombok.Setter;
 import twitter4j.*;
+import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
 
-import java.util.Arrays;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static edu.vanderbilt.yunyul.vertxtw.TwitterWallVerticle.log;
 
@@ -25,11 +28,15 @@ public class TwitterStreamHandler {
     private TweetBroadcaster broadcaster;
     private String[] lastTrackedTags;
 
+    private final Twitter twitter;
     private final TwitterStream twitterStream;
     private final Set<String> trackedTags = new ConcurrentSkipListSet<>();
+
     // Streaming API already uses non Vert.x thread, no need to use one for updates either
     private final Executor filterUpdateThread = Executors.newSingleThreadExecutor();
-    private final RateLimiter rateLimiter = RateLimiter.create(2);
+    private final RateLimiter filterUpdateRateLimiter = RateLimiter.create(2);
+    private final Executor searchThread = Executors.newSingleThreadExecutor();
+    private final RateLimiter searchRateLimiter = RateLimiter.create(1);
 
     static {
         System.setProperty("twitter4j.loggerFactory", "twitter4j.JULLoggerFactory");
@@ -41,24 +48,22 @@ public class TwitterStreamHandler {
                                 String accessTokenSecret) {
         log("Initializing Twitter handler...");
 
-        ConfigurationBuilder configurationBuilder = new ConfigurationBuilder()
+        Configuration config = new ConfigurationBuilder()
                 .setOAuthConsumerKey(consumerKey)
                 .setOAuthConsumerSecret(consumerSecret)
                 .setOAuthAccessToken(accessToken)
                 .setOAuthAccessTokenSecret(accessTokenSecret)
-                .setDebugEnabled(false);
-        this.twitterStream = new TwitterStreamFactory(configurationBuilder.build()).getInstance();
+                .setDebugEnabled(false)
+                .build();
+        this.twitter = new TwitterFactory(config).getInstance();
+        this.twitterStream = new TwitterStreamFactory(config).getInstance();
 
         twitterStream.addListener(new StatusListener() {
             @Override
             public void onStatus(Status status) {
-                try {
-                    String statusJson = objectMapper.writeValueAsString(new SimpleTweet(status));
-                    for (HashtagEntity e : status.getHashtagEntities()) {
-                        broadcaster.broadcast(e.getText().toLowerCase(), statusJson);
-                    }
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
+                String statusJson = safeToJsonString(new SimpleTweet(status));
+                for (HashtagEntity e : status.getHashtagEntities()) {
+                    broadcaster.broadcast(e.getText().toLowerCase(), statusJson);
                 }
             }
 
@@ -96,11 +101,23 @@ public class TwitterStreamHandler {
             if (tagArr.length > 0 && !Arrays.equals(tagArr, lastTrackedTags)) {
                 lastTrackedTags = tagArr;
                 // Rate limit filter updates, blocks until permit acquired
-                rateLimiter.acquire();
+                filterUpdateRateLimiter.acquire();
                 // Blocking call, spins up new thread
                 twitterStream.filter(tagArr);
             }
         });
+    }
+
+    private boolean isTagValid(String tag) {
+        return tag.length() > 0 && tag.length() <= 30 && hashtag.matcher(tag).matches();
+    }
+
+    private String safeToJsonString(Object object) {
+        try {
+            return objectMapper.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException();
+        }
     }
 
     /**
@@ -110,7 +127,7 @@ public class TwitterStreamHandler {
      * @return Whether or not the tag was successfully tracked
      */
     public boolean trackTag(String tag) {
-        if (tag.length() > 0 && tag.length() <= 30 && hashtag.matcher(tag).matches()) {
+        if (isTagValid(tag)) {
             if (trackedTags.add(tag.toLowerCase())) {
                 log("Tracking " + tag);
                 updateFilters();
@@ -133,6 +150,31 @@ public class TwitterStreamHandler {
         }
     }
 
+    /**
+     * Performs a one-time search for tweets matching the provided hashtag
+     *
+     * @param tag      The hashtag to search for
+     * @param callback The callback to call with the results as JSON strings
+     */
+    public void searchForTweets(String tag, Handler<List<String>> callback) {
+        if (isTagValid(tag)) {
+            searchThread.execute(() -> {
+                searchRateLimiter.acquire();
+                try {
+                    callback.handle(twitter.search(new Query("#" + tag)).getTweets().stream()
+                            .map(SimpleTweet::new)
+                            .sorted(Comparator.comparingLong(SimpleTweet::getTime))
+                            .map(this::safeToJsonString)
+                            .collect(Collectors.toList()));
+                } catch (TwitterException e) {
+                    e.printStackTrace();
+                }
+            });
+        } else {
+            callback.handle(Collections.emptyList());
+        }
+    }
+
     @Data
     public static class SimpleTweet {
         private String text;
@@ -143,12 +185,14 @@ public class TwitterStreamHandler {
         private String originalUsername;
         // Javascript doesn't support 64-bit longs
         private String id;
+        private String statusId;
 
         public SimpleTweet(Status status) {
             this.time = status.getCreatedAt().getTime();
             this.username = status.getUser().getScreenName();
             this.userProfilePicture = status.getUser().getMiniProfileImageURLHttps();
             this.isRetweet = status.isRetweet();
+            this.statusId = Long.toString(status.getId());
             if (this.isRetweet) {
                 this.originalUsername = status.getRetweetedStatus().getUser().getScreenName();
                 this.text = "RT @" + this.originalUsername + ": " + status.getRetweetedStatus().getText();
