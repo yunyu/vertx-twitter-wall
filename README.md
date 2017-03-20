@@ -23,7 +23,8 @@ Configuration
 
 * The tokens and secrets can be obtained through these [instructions](http://stackoverflow.com/a/12335636).
 * `filterUpdateRateLimit` is how many max stream reconnections to allow per second. Twitter does not document the rate limit for this. Don't change this without good reason.
-* `searchPeriodInSeconds` controls the period for the fallback search-based lookup. See https://dev.twitter.com/rest/public/rate-limits.
+* `initialTweetRateLimit` is how many lookups of initial tweets to allow per second. This is done using the user bucket. See https://dev.twitter.com/rest/public/rate-limits.
+* `searchPeriodInSeconds` controls the period for the fallback search-based lookup using the app bucket. See https://dev.twitter.com/rest/public/rate-limits.
 
 TODO
 --
