@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.RateLimiter;
 import io.vertx.core.json.JsonObject;
-import lombok.Data;
 import lombok.Setter;
 import twitter4j.*;
 import twitter4j.conf.Configuration;
@@ -52,7 +51,7 @@ public class TwitterStreamHandler {
     public TwitterStreamHandler(JsonObject vertxConfig) {
         log("Initializing Twitter handler...");
 
-        // Twitter does not make this information (stream disconnect/reconnect) information public
+        // Twitter does not make this rate limit (stream disconnect/reconnect) information public
         // See https://dev.twitter.com/streaming/overview/connecting#rate-limiting
         // This value is an experimental guess
         this.filterUpdateRateLimiter = RateLimiter.create(
@@ -88,7 +87,6 @@ public class TwitterStreamHandler {
         } catch (TwitterException e) {
             e.printStackTrace();
         }
-
         this.twitterUserAuth = new TwitterFactory(config).getInstance();
 
         twitterStream.addListener(new StatusListener() {
@@ -151,14 +149,12 @@ public class TwitterStreamHandler {
             if (streamConnected.get()) {
                 return;
             }
-            if (!tagQueue.isEmpty()) {
-                log("Tracking tag queue: " + tagQueue.toString());
-            }
             List<String> tagsToSearch = new ArrayList<>();
             if (!tagQueue.isEmpty()) {
-                // If over 10 elements, "rotate" the elements in the queue
+                log("Tracking tag queue: " + tagQueue.toString());
+                // If over 10 elements, "rotate" the elements in the queue as Twitter caps to 10 keywords
                 // This is susceptible to a small DoS if elements are constantly added,
-                // But at that point, I'd just pay for Firehose API access
+                // but at that point, I'd just pay for Firehose API access
                 if (tagQueue.size() > 10) {
                     for (int i = 0; i < 10; i++) {
                         String el = tagQueue.removeFirst();
@@ -177,6 +173,7 @@ public class TwitterStreamHandler {
             try {
                 List<Status> statuses = getTweetsForQuery(twitterAppAuth, queryString);
                 for (String tag : tagsToSearch) {
+                    // I could probably optimize the algorithm a bit more, but this isn't a bottleneck
                     List<SimpleTweet> tweetsMatchingTag = statuses.stream()
                             .filter(status -> {
                                 for (HashtagEntity e : status.getHashtagEntities()) {
@@ -191,7 +188,9 @@ public class TwitterStreamHandler {
             } catch (TwitterException e) {
                 e.printStackTrace();
             }
-        }, 0, (long) (vertxConfig.getDouble("searchPeriodInSeconds", 2.0D) * 1000), TimeUnit.MILLISECONDS);
+        }, 0,
+                (long) (vertxConfig.getDouble("searchPeriodInSeconds", 2.0D) * 1000),
+                TimeUnit.MILLISECONDS);
     }
 
     private List<Status> getTweetsForQuery(Twitter twitter, String queryString) throws TwitterException {
@@ -289,33 +288,4 @@ public class TwitterStreamHandler {
         });
     }
 
-    @Data
-    public static class SimpleTweet {
-        private String text;
-        private long time;
-        private String username;
-        private String userProfilePicture;
-        private boolean isRetweet;
-        private String originalUsername;
-        // Javascript doesn't support 64-bit longs
-        private String id;
-        private String statusId;
-
-        public SimpleTweet(Status status) {
-            this.time = status.getCreatedAt().getTime();
-            this.username = status.getUser().getScreenName();
-            this.userProfilePicture = status.getUser().getMiniProfileImageURLHttps();
-            this.isRetweet = status.isRetweet();
-            this.statusId = Long.toString(status.getId());
-            if (this.isRetweet) {
-                this.originalUsername = status.getRetweetedStatus().getUser().getScreenName();
-                this.text = "RT @" + this.originalUsername + ": " + status.getRetweetedStatus().getText();
-                this.id = Long.toString(status.getRetweetedStatus().getId());
-            } else {
-                this.text = status.getText();
-                this.originalUsername = this.username;
-                this.id = this.statusId;
-            }
-        }
-    }
 }
