@@ -146,49 +146,55 @@ public class TwitterStreamHandler {
 
         // Fall back to search API if connection lost
         Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-            if (streamConnected.get()) {
-                return;
-            }
-            List<String> tagsToSearch = new ArrayList<>();
-            if (!tagQueue.isEmpty()) {
-                log("Tracking tag queue: " + tagQueue.toString());
-                // If over 10 elements, "rotate" the elements in the queue as Twitter caps to 10 keywords
-                // This is susceptible to a small DoS if elements are constantly added,
-                // but at that point, I'd just pay for Firehose API access
-                if (tagQueue.size() > 10) {
-                    for (int i = 0; i < 10; i++) {
-                        String el = tagQueue.removeFirst();
-                        tagsToSearch.add(el);
-                        tagQueue.addLast(el);
+                    if (streamConnected.get()) {
+                        return;
                     }
-                } else {
-                    tagsToSearch.addAll(tagQueue);
-                }
-            }
-            if (tagsToSearch.isEmpty()) {
-                return;
-            }
-            String queryString = orJoiner.join(tagsToSearch.stream()
-                    .map(el -> "#" + el).collect(Collectors.toList()));
-            try {
-                List<Status> statuses = getTweetsForQuery(twitterAppAuth, queryString);
-                for (String tag : tagsToSearch) {
-                    // I could probably optimize the algorithm a bit more, but this isn't a bottleneck
-                    List<SimpleTweet> tweetsMatchingTag = statuses.stream()
-                            .filter(status -> {
-                                for (HashtagEntity e : status.getHashtagEntities()) {
-                                    if (e.getText().equalsIgnoreCase(tag)) {
-                                        return true;
-                                    }
-                                }
-                                return false;
-                            }).map(SimpleTweet::new).collect(Collectors.toList());
-                    broadcaster.broadcast(tag.toLowerCase(), safeToJsonString(tweetsMatchingTag));
-                }
-            } catch (TwitterException e) {
-                e.printStackTrace();
-            }
-        }, 0,
+                    List<String> tagsToSearch = new ArrayList<>();
+                    if (!tagQueue.isEmpty()) {
+                        log("Tracking tag queue: " + tagQueue.toString());
+                        // "Rotate" the elements in the queue to give everything a chance
+                        // More tweets will be returned by more active hashtags, possibly "crowding out" the others
+                        // Susceptible to denial of service if rate of adding new hashtags is too high,
+                        // but you're supposed to use Firehose for that situation
+                        int tagQueueSize = tagQueue.size();
+                        // Twitter caps to 10 max keywords
+                        if (tagQueueSize > 10) {
+                            for (int i = 0; i < 10; i++) {
+                                String el = tagQueue.removeFirst();
+                                tagsToSearch.add(el);
+                                tagQueue.addLast(el);
+                            }
+                        } else {
+                            if (tagQueueSize > 1) {
+                                tagQueue.addLast(tagQueue.removeFirst());
+                            }
+                            tagsToSearch.addAll(tagQueue);
+                        }
+                    }
+                    if (tagsToSearch.isEmpty()) {
+                        return;
+                    }
+                    String queryString = orJoiner.join(tagsToSearch.stream()
+                            .map(el -> "#" + el).collect(Collectors.toList()));
+                    try {
+                        List<Status> statuses = getTweetsForQuery(twitterAppAuth, queryString);
+                        for (String tag : tagsToSearch) {
+                            // I could probably optimize the algorithm a bit more, but this isn't a bottleneck
+                            List<SimpleTweet> tweetsMatchingTag = statuses.stream()
+                                    .filter(status -> {
+                                        for (HashtagEntity e : status.getHashtagEntities()) {
+                                            if (e.getText().equalsIgnoreCase(tag)) {
+                                                return true;
+                                            }
+                                        }
+                                        return false;
+                                    }).map(SimpleTweet::new).collect(Collectors.toList());
+                            broadcaster.broadcast(tag.toLowerCase(), safeToJsonString(tweetsMatchingTag));
+                        }
+                    } catch (TwitterException e) {
+                        e.printStackTrace();
+                    }
+                }, 0,
                 (long) (vertxConfig.getDouble("searchPeriodInSeconds", 2.0D) * 1000),
                 TimeUnit.MILLISECONDS);
     }
