@@ -6,7 +6,11 @@ Vert.x Twitter Wall
 
 Twitter Wall project for Vert.x. Streams tweets using Twitter4J through the SockJS event bus bridge. Uses mini.css and vue.js on the frontend.
 
-Uses the Twitter search API to display initial tweets and upgrades to the streaming API when available.
+Notes
+--
+When you first enter a hashtag, it acquires previous tweets using Twitter user authentication. 
+Then, it switches to polling the Twitter API with app authentication (across all tracked hashtags, some content from less active ones may be skipped) and sends it to the client.
+Lastly, it upgrades to the Streaming API (we have to heavily rate limit this as Twitter does not like connection churn) to get realtime results for all hashtags. This usually happens within 2 seconds if new hashtags are added infrequently, with a 20-30 second worst case.
 
 Usage
 --
@@ -23,7 +27,7 @@ Configuration
 
 * The tokens and secrets can be obtained through these [instructions](http://stackoverflow.com/a/12335636).
 * `filterUpdateRateLimit` is how many max stream reconnections to allow per second. Twitter does not document the rate limit for this. Don't change this without good reason.
-* `initialTweetRateLimit` is how many lookups of initial tweets to allow per second. This is done using the user bucket. See https://dev.twitter.com/rest/public/rate-limits.
+* `initialTweetRateLimit` is how many lookups of initial tweets to allow per second using the user bucket. See https://dev.twitter.com/rest/public/rate-limits.
 * `searchPeriodInSeconds` controls the period for the fallback search-based lookup using the app bucket. See https://dev.twitter.com/rest/public/rate-limits.
 
 TODO
