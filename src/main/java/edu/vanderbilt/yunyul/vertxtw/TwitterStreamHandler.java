@@ -221,10 +221,10 @@ public class TwitterStreamHandler {
             if (tagArr.length > 0 && !Arrays.asList(lastTrackedTags).containsAll(Arrays.asList(tagArr))) {
                 lastTrackedTags = tagArr;
                 log("Filtering to " + Arrays.toString(tagArr));
-                // Blocking call, spins up new thread
-                twitterStream.filter(tagArr);
                 log("Stream disconnected");
                 streamConnected.set(false);
+                // Blocking call, spins up new thread
+                twitterStream.filter(tagArr);
             }
         }, 500, TimeUnit.MILLISECONDS); // "Bunch up" requests within 500ms
     }
