@@ -1,5 +1,6 @@
 package edu.vanderbilt.yunyul.vertxtw;
 
+import io.prometheus.client.vertx.MetricsHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.logging.Logger;
@@ -17,6 +18,8 @@ public class TwitterWallVerticle extends AbstractVerticle {
         Router router = Router.router(vertx);
 
         // Setup routes
+        router.route("/metrics").handler(new MetricsHandler());
+
         TweetBroadcaster broadcaster = new TweetBroadcaster(router, vertx);
         router.route().handler(StaticHandler.create());
         router.route().failureHandler(ErrorHandler.create());
