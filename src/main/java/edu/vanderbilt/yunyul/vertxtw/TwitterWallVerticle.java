@@ -7,6 +7,7 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.ErrorHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 
@@ -18,13 +19,20 @@ public class TwitterWallVerticle extends AbstractVerticle {
         HttpServer httpServer = vertx.createHttpServer();
         Router router = Router.router(vertx);
 
-        // Setup routes
+        router.route("/metrics").handler(CorsHandler.create("*"));
+        router.route("/metrics").handler(ctx -> {
+            // logger.info(ctx.request().params().getAll("name[]"));
+            ctx.next();
+        });
         DefaultExports.initialize();
         router.route("/metrics").handler(new MetricsHandler());
 
+        router.route("/admin").handler(StaticHandler.create("adminfiles"));
+        router.route("/dist/*").handler(StaticHandler.create("adminfiles/dist"));
+
         TweetBroadcaster broadcaster = new TweetBroadcaster(router, vertx);
-        router.route().handler(StaticHandler.create());
-        router.route().failureHandler(ErrorHandler.create());
+        router.route("/*").handler(StaticHandler.create());
+        router.route("/*").failureHandler(ErrorHandler.create());
 
         TwitterStreamHandler twitterStreamHandler = new TwitterStreamHandler(config());
 
