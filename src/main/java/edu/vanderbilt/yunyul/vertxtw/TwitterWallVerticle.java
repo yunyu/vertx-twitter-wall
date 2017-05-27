@@ -1,5 +1,8 @@
 package edu.vanderbilt.yunyul.vertxtw;
 
+import com.codahale.metrics.SharedMetricRegistries;
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.dropwizard.DropwizardExports;
 import io.prometheus.client.hotspot.DefaultExports;
 import io.prometheus.client.vertx.MetricsHandler;
 import io.vertx.core.AbstractVerticle;
@@ -20,11 +23,11 @@ public class TwitterWallVerticle extends AbstractVerticle {
         Router router = Router.router(vertx);
 
         router.route("/metrics").handler(CorsHandler.create("*"));
-        router.route("/metrics").handler(ctx -> {
-            // logger.info(ctx.request().params().getAll("name[]"));
-            ctx.next();
-        });
+
+        CollectorRegistry defaultRegistry = CollectorRegistry.defaultRegistry;
+        defaultRegistry.register(new DropwizardExports(SharedMetricRegistries.getOrCreate("vertx-dw")));
         DefaultExports.initialize();
+
         router.route("/metrics").handler(new MetricsHandler());
 
         router.route("/admin").handler(StaticHandler.create("adminfiles"));
