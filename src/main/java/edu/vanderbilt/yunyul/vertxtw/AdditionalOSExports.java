@@ -18,7 +18,7 @@ public class AdditionalOSExports extends Collector {
         mfs.add(new GaugeMetricFamily("os_load_average", "The system load average for the last minute.",
                 osBean.getSystemLoadAverage()));
         mfs.add(new GaugeMetricFamily("os_avail_processors", "The number of processors available to the Java virtual machine.",
-                osBean.getSystemLoadAverage()));
+                osBean.getAvailableProcessors()));
 
         return mfs;
     }
