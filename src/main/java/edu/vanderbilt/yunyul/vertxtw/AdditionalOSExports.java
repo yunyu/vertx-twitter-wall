@@ -15,9 +15,9 @@ public class AdditionalOSExports extends Collector {
     public List<MetricFamilySamples> collect() {
         List<MetricFamilySamples> mfs = new ArrayList<>();
 
-        mfs.add(new GaugeMetricFamily("os_load_average", "The system load average for the last minute.",
+        mfs.add(new GaugeMetricFamily("os_load_average", "The system load average for the last minute",
                 osBean.getSystemLoadAverage()));
-        mfs.add(new GaugeMetricFamily("os_avail_processors", "The number of processors available to the Java virtual machine.",
+        mfs.add(new GaugeMetricFamily("os_avail_processors", "The number of processors available to the Java virtual machine",
                 osBean.getAvailableProcessors()));
 
         return mfs;
