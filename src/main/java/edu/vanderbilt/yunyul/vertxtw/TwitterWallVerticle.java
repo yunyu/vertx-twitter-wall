@@ -6,6 +6,7 @@ import io.prometheus.client.dropwizard.DropwizardExports;
 import io.prometheus.client.hotspot.DefaultExports;
 import io.prometheus.client.vertx.MetricsHandler;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -21,6 +22,8 @@ public class TwitterWallVerticle extends AbstractVerticle {
     public void start() throws Exception {
         HttpServer httpServer = vertx.createHttpServer();
         Router router = Router.router(vertx);
+
+        vertx.deployVerticle(new DummyWorkerVerticle(), new DeploymentOptions().setWorker(true));
 
         router.route("/metrics").handler(CorsHandler.create("*"));
 
