@@ -39,7 +39,7 @@ public class AdditionalOSExports extends Collector {
 
         mfs.add(new GaugeMetricFamily("disk_space_bytes_used", "The disk space used in bytes for all filesystems",
                 totalDiskSpace - availDiskSpace));
-        mfs.add(new GaugeMetricFamily("disk_space_bytes_max", "The total disk space for all filesystems",
+        mfs.add(new GaugeMetricFamily("disk_space_bytes_max", "The total disk space in bytes for all filesystems",
                 totalDiskSpace));
         
         return mfs;
