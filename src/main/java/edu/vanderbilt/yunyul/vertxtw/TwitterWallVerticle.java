@@ -28,7 +28,9 @@ public class TwitterWallVerticle extends AbstractVerticle {
         router.route("/metrics").handler(CorsHandler.create("*"));
 
         CollectorRegistry defaultRegistry = CollectorRegistry.defaultRegistry;
-        defaultRegistry.register(new DropwizardExports(SharedMetricRegistries.getOrCreate("vertx-dw")));
+        defaultRegistry.register(new DropwizardExports(SharedMetricRegistries.getOrCreate(
+                System.getProperty("vertx.metrics.options.registryName")
+        )));
         DefaultExports.initialize();
         new AdditionalOSExports().register();
 
