@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AdditionalOSExports extends Collector {
-    private static final OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+    private static final com.sun.management.OperatingSystemMXBean osBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
     private static final FileSystem defaultFs = Paths.get(System.getProperty("user.dir")).getFileSystem();
 
     @Override
@@ -24,6 +24,8 @@ public class AdditionalOSExports extends Collector {
                 osBean.getSystemLoadAverage()));
         mfs.add(new GaugeMetricFamily("os_avail_processors", "The number of processors available to the Java virtual machine",
                 osBean.getAvailableProcessors()));
+        mfs.add(new GaugeMetricFamily("os_system_cpu_load", "The system CPU load as a number between 0 and 1",
+                osBean.getSystemCpuLoad()));
 
         long availDiskSpace = 0;
         long totalDiskSpace = 0;
