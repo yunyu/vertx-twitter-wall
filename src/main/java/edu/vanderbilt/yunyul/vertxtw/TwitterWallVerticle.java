@@ -10,6 +10,7 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.dropwizard.MetricsService;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.ErrorHandler;
@@ -48,9 +49,13 @@ public class TwitterWallVerticle extends AbstractVerticle {
         // Register circular dependency
         twitterStreamHandler.setBroadcaster(broadcaster);
         broadcaster.setTwitterStreamHandler(twitterStreamHandler);
+        MetricsService metricsService = MetricsService.create(vertx);
 
         log("Starting webserver...");
         httpServer.requestHandler(router::accept).listen(config().getInteger("port", 8080));
+
+        log(metricsService.getMetricsSnapshot(httpServer).toString());
+
     }
 
     /**
