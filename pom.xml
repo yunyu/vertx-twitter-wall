@@ -102,5 +102,10 @@
             <artifactId>simpleclient_vertx</artifactId>
             <version>82b48dff77</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.yunyu</groupId>
+            <artifactId>prometheus-jvm-extras</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 </project>

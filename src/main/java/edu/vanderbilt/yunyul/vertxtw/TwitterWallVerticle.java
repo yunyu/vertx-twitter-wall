@@ -1,6 +1,7 @@
 package edu.vanderbilt.yunyul.vertxtw;
 
 import com.codahale.metrics.SharedMetricRegistries;
+import in.yunyul.prometheus.extras.AdditionalJVMExports;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.dropwizard.DropwizardExports;
 import io.prometheus.client.hotspot.DefaultExports;
@@ -33,7 +34,7 @@ public class TwitterWallVerticle extends AbstractVerticle {
                 System.getProperty("vertx.metrics.options.registryName")
         )));
         DefaultExports.initialize();
-        new AdditionalOSExports().register();
+        new AdditionalJVMExports().register();
 
         router.route("/metrics").handler(new MetricsHandler());
 
