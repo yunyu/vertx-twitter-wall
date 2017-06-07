@@ -35,6 +35,7 @@ public class TwitterWallVerticle extends AbstractVerticle {
         )));
         DefaultExports.initialize();
         new AdditionalJVMExports().register();
+        new AdditionalVertxExports(vertx, httpServer).register();
 
         router.route("/metrics").handler(new MetricsHandler());
 
@@ -54,8 +55,8 @@ public class TwitterWallVerticle extends AbstractVerticle {
         log("Starting webserver...");
         httpServer.requestHandler(router::accept).listen(config().getInteger("port", 8080));
 
-        MetricsService metricsService = MetricsService.create(vertx);
-        log(metricsService.getMetricsSnapshot(httpServer).toString());
+        // MetricsService metricsService = MetricsService.create(vertx);
+        // log(metricsService.getMetricsSnapshot(httpServer).toString());
 
     }
 
