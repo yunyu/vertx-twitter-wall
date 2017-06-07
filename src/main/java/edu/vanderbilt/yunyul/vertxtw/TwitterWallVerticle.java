@@ -50,11 +50,11 @@ public class TwitterWallVerticle extends AbstractVerticle {
         // Register circular dependency
         twitterStreamHandler.setBroadcaster(broadcaster);
         broadcaster.setTwitterStreamHandler(twitterStreamHandler);
-        MetricsService metricsService = MetricsService.create(vertx);
 
         log("Starting webserver...");
         httpServer.requestHandler(router::accept).listen(config().getInteger("port", 8080));
 
+        MetricsService metricsService = MetricsService.create(vertx);
         log(metricsService.getMetricsSnapshot(httpServer).toString());
 
     }
