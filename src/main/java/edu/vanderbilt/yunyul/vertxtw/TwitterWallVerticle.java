@@ -9,16 +9,16 @@ import io.prometheus.client.vertx.MetricsHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.http.HttpServer;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.dropwizard.MetricsService;
+
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.ErrorHandler;
 import io.vertx.ext.web.handler.StaticHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class TwitterWallVerticle extends AbstractVerticle {
-    private static final Logger logger = LoggerFactory.getLogger(TwitterWallVerticle.class);
+    private static final Logger logger = LogManager.getLogger(TwitterWallVerticle.class);
 
     @Override
     public void start() throws Exception {
@@ -54,9 +54,6 @@ public class TwitterWallVerticle extends AbstractVerticle {
 
         log("Starting webserver...");
         httpServer.requestHandler(router::accept).listen(config().getInteger("port", 8080));
-
-        // MetricsService metricsService = MetricsService.create(vertx);
-        // log(metricsService.getMetricsSnapshot(httpServer).toString());
 
     }
 
