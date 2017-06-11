@@ -5,12 +5,14 @@ import com.codahale.metrics.Timer;
 import io.prometheus.client.Collector;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /*
  * TODO: Move to standalone package
  */
 public class DropwizardTimerRateExports extends Collector {
     private final MetricRegistry registry;
+    private static double TIMER_FACTOR =  1.0D / TimeUnit.SECONDS.toNanos(1L);
 
     public DropwizardTimerRateExports(MetricRegistry registry) {
         this.registry = registry;
@@ -33,10 +35,10 @@ public class DropwizardTimerRateExports extends Collector {
         );
         String distName = name + "_dist";
         List<MetricFamilySamples.Sample> distSamples = Arrays.asList(
-                new MetricFamilySamples.Sample(distName, Collections.singletonList("stat"), Collections.singletonList("mean"), snapshot.getMean()),
-                new MetricFamilySamples.Sample(distName, Collections.singletonList("stat"), Collections.singletonList("min"), snapshot.getMin()),
-                new MetricFamilySamples.Sample(distName, Collections.singletonList("stat"), Collections.singletonList("max"), snapshot.getMax()),
-                new MetricFamilySamples.Sample(distName, Collections.singletonList("stat"), Collections.singletonList("stdDev"), snapshot.getStdDev())
+                new MetricFamilySamples.Sample(distName, Collections.singletonList("stat"), Collections.singletonList("mean"), snapshot.getMean() * TIMER_FACTOR),
+                new MetricFamilySamples.Sample(distName, Collections.singletonList("stat"), Collections.singletonList("min"), snapshot.getMin() * TIMER_FACTOR),
+                new MetricFamilySamples.Sample(distName, Collections.singletonList("stat"), Collections.singletonList("max"), snapshot.getMax() * TIMER_FACTOR),
+                new MetricFamilySamples.Sample(distName, Collections.singletonList("stat"), Collections.singletonList("stdDev"), snapshot.getStdDev() * TIMER_FACTOR)
         );
         return Arrays.asList(
                 new MetricFamilySamples(rateName, Type.GAUGE, getHelpMessage(dropwizardName, timer), rateSamples),
