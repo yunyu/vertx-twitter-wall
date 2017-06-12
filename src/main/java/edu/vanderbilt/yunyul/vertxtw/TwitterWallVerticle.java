@@ -46,7 +46,7 @@ public class TwitterWallVerticle extends AbstractVerticle {
         DefaultExports.initialize();
         new AdditionalJVMExports().register();
         new DropwizardTimerRateExports(dropwizardRegistry).register();
-        new LoggingHandler(vertx);
+        new LoggingHandler(router, vertx);
 
         ServiceDiscovery discovery = ServiceDiscovery.create(vertx,
                 new ServiceDiscoveryOptions()
