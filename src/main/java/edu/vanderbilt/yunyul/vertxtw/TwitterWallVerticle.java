@@ -15,6 +15,12 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.ErrorHandler;
 import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.servicediscovery.Record;
+import io.vertx.servicediscovery.ServiceDiscovery;
+import io.vertx.servicediscovery.ServiceDiscoveryOptions;
+import io.vertx.servicediscovery.rest.ServiceDiscoveryRestEndpoint;
+import io.vertx.servicediscovery.types.EventBusService;
+import io.vertx.servicediscovery.types.HttpEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +31,8 @@ public class TwitterWallVerticle extends AbstractVerticle {
     public void start() throws Exception {
         HttpServer httpServer = vertx.createHttpServer();
         Router router = Router.router(vertx);
+
+        int port = config().getInteger("port", 8080);
 
         vertx.deployVerticle(new DummyWorkerVerticle(), new DeploymentOptions().setWorker(true));
 
@@ -38,6 +46,19 @@ public class TwitterWallVerticle extends AbstractVerticle {
         DefaultExports.initialize();
         new AdditionalJVMExports().register();
         new DropwizardTimerRateExports(dropwizardRegistry).register();
+        new LoggingHandler(vertx);
+
+        ServiceDiscovery discovery = ServiceDiscovery.create(vertx,
+                new ServiceDiscoveryOptions()
+                        .setName("twitter-wall"));
+        ServiceDiscoveryRestEndpoint.create(router, discovery);
+
+        Record metricsRecord = HttpEndpoint.createRecord("prometheus-metrics", "localhost", port, "/metrics");
+        discovery.publish(metricsRecord, ar -> {
+            if (ar.succeeded()) {
+                log("Successfully published metrics record");
+            }
+        });
 
         router.route("/metrics").handler(new MetricsHandler());
 
@@ -49,13 +70,23 @@ public class TwitterWallVerticle extends AbstractVerticle {
         router.route("/*").failureHandler(ErrorHandler.create());
 
         TwitterStreamHandler twitterStreamHandler = new TwitterStreamHandler(config());
+        Record twitterRecord = EventBusService.createRecord(
+                "twitter-broadcast",
+                "tweet.main",
+                TweetBroadcaster.class
+        );
+        discovery.publish(twitterRecord, ar -> {
+            if (ar.succeeded()) {
+                log("Successfully published Twitter record");
+            }
+        });
 
         // Register circular dependency
         twitterStreamHandler.setBroadcaster(broadcaster);
         broadcaster.setTwitterStreamHandler(twitterStreamHandler);
 
         log("Starting webserver...");
-        httpServer.requestHandler(router::accept).listen(config().getInteger("port", 8080));
+        httpServer.requestHandler(router::accept).listen(port);
 
     }
 
