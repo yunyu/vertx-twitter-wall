@@ -15,11 +15,11 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.ErrorHandler;
 import io.vertx.ext.web.handler.StaticHandler;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TwitterWallVerticle extends AbstractVerticle {
-    private static final Logger logger = LogManager.getLogger(TwitterWallVerticle.class);
+    private static final Logger logger = LoggerFactory.getLogger(TwitterWallVerticle.class);
 
     @Override
     public void start() throws Exception {
