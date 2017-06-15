@@ -1,5 +1,6 @@
 package edu.vanderbilt.yunyul.vertxtw;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
@@ -7,6 +8,7 @@ import ch.qos.logback.core.AppenderBase;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -51,17 +53,55 @@ public class LoggingHandler {
         // Set up routes
         router.route("/loggers*").handler(BodyHandler.create());
 
-        router.route(HttpMethod.POST, "/loggers/:logger/setlevel").produces(JSON_CONTENT_TYPE)
+        router.route(HttpMethod.POST, "/loggers/:logger/update")
+                .consumes(JSON_CONTENT_TYPE).produces(JSON_CONTENT_TYPE)
+                .handler(ctx -> {
+                    String loggerName = ctx.request().getParam("logger");
+                    ch.qos.logback.classic.Logger logger = lc.exists(loggerName);
+                    if (logger == null) {
+                        sendError(ctx.response(), 404, "logger_not_found");
+                        return;
+                    }
+
+                    JsonObject body = ctx.getBodyAsJson();
+                    Level level = Level.toLevel(body.getString("level"), null);
+                    if (level == null) {
+                        sendError(ctx.response(), 400, "invalid_level");
+                        return;
+                    }
+
+                    logger.setLevel(level);
+                    ctx.response().putHeader("content-type", JSON_CONTENT_TYPE).end(getLoggerInfo(logger).encode());
+                });
+
+        router.route(HttpMethod.GET, "/loggers/:logger")
+                .produces(JSON_CONTENT_TYPE)
+                .handler(ctx -> {
+                    String loggerName = ctx.request().getParam("logger");
+                    ch.qos.logback.classic.Logger logger = lc.exists(loggerName);
+                    if (logger == null) {
+                        sendError(ctx.response(), 404, "logger_not_found");
+                        return;
+                    }
+
+                    ctx.response().putHeader("content-type", JSON_CONTENT_TYPE).end(getLoggerInfo(logger).encode());
+                });
 
         router.route(HttpMethod.GET, "/loggers").produces(JSON_CONTENT_TYPE).handler(ctx -> {
             JsonArray loggers = new JsonArray();
             for (ch.qos.logback.classic.Logger log : lc.getLoggerList()) {
                 loggers.add(getLoggerInfo(log));
             }
-            ctx.response().putHeader("content-type", JSON_CONTENT_TYPE).end(loggers.toString());
+            ctx.response().putHeader("content-type", JSON_CONTENT_TYPE).end(loggers.encode());
         });
     }
 
+    private static void sendError(HttpServerResponse res, int status, String error) {
+        JsonObject result = new JsonObject();
+        result.put("status", status);
+        result.put("error", error);
+        res.setStatusCode(status).putHeader("content-type", JSON_CONTENT_TYPE).end(result.encode());
+    }
 
     private static JsonObject getLoggerInfo(ch.qos.logback.classic.Logger logger) {
         JsonObject loggerInfo = new JsonObject();
