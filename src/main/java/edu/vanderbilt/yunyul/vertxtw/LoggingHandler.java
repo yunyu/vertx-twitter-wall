@@ -64,9 +64,18 @@ public class LoggingHandler {
                         sendError(ctx.response(), 400, "invalid_level");
                         return;
                     }
-
                     logger.setLevel(level);
-                    ctx.response().putHeader("content-type", JSON_CONTENT_TYPE).end(getLoggerInfo(logger).encode());
+
+                    String include = body.getString("include");
+                    if (include != null && include.equals("all")) {
+                        JsonArray loggers = new JsonArray();
+                        for (ch.qos.logback.classic.Logger log : lc.getLoggerList()) {
+                            loggers.add(getLoggerInfo(log));
+                        }
+                        ctx.response().putHeader("content-type", JSON_CONTENT_TYPE).end(loggers.encode());
+                    } else {
+                        ctx.response().putHeader("content-type", JSON_CONTENT_TYPE).end(getLoggerInfo(logger).encode());
+                    }
                 });
 
         router.route(HttpMethod.GET, "/loggers/:logger")
