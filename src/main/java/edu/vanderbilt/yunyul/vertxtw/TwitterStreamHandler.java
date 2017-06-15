@@ -92,9 +92,10 @@ public class TwitterStreamHandler {
         twitterStream.addListener(new StatusListener() {
             @Override
             public void onStatus(Status status) {
-                String statusJson = safeToJsonString(new SimpleTweet(status));
+                SimpleTweet st = new SimpleTweet(status);
                 for (HashtagEntity e : status.getHashtagEntities()) {
-                    broadcaster.broadcast(e.getText().toLowerCase(), statusJson);
+                    log("Broadcasting tweet " + st.getStatusId() + " by " + st.getUsername());
+                    broadcaster.broadcast(e.getText().toLowerCase(), safeToJsonString(st));
                 }
             }
 
