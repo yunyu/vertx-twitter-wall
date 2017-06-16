@@ -11,6 +11,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.http.HttpServer;
 
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.ErrorHandler;
@@ -29,7 +30,9 @@ public class TwitterWallVerticle extends AbstractVerticle {
 
     @Override
     public void start() throws Exception {
-        HttpServer httpServer = vertx.createHttpServer();
+        HttpServerOptions serverOptions = new HttpServerOptions();
+        serverOptions.setCompressionSupported(true);
+        HttpServer httpServer = vertx.createHttpServer(serverOptions);
         Router router = Router.router(vertx);
 
         int port = config().getInteger("port", 8080);

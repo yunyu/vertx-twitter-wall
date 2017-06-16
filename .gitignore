@@ -13,3 +13,4 @@ build
 target
 /dependency-reduced-pom.xml
 config.json
+/start.sh
