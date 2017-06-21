@@ -93,24 +93,19 @@
             <version>21.0</version>
         </dependency>
         <dependency>
-            <groupId>com.github.prometheus.client_java</groupId>
+            <groupId>io.prometheus</groupId>
             <artifactId>simpleclient_hotspot</artifactId>
-            <version>82b48dff77</version>
+            <version>0.0.23</version>
         </dependency>
         <dependency>
-            <groupId>com.github.prometheus.client_java</groupId>
+            <groupId>io.prometheus</groupId>
             <artifactId>simpleclient_dropwizard</artifactId>
-            <version>82b48dff77</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.prometheus.client_java</groupId>
-            <artifactId>simpleclient_vertx</artifactId>
-            <version>82b48dff77</version>
+            <version>0.0.23</version>
         </dependency>
         <dependency>
             <groupId>com.github.yunyu</groupId>
             <artifactId>prometheus-jvm-extras</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -121,6 +116,26 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>in.yunyul</groupId>
+            <artifactId>vertx-console-base</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>in.yunyul</groupId>
+            <artifactId>vertx-console-services</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>in.yunyul</groupId>
+            <artifactId>vertx-console-logging</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>in.yunyul</groupId>
+            <artifactId>vertx-console-metrics</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>

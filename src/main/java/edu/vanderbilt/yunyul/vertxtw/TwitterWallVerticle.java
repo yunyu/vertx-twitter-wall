@@ -3,6 +3,11 @@ package edu.vanderbilt.yunyul.vertxtw;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SharedMetricRegistries;
 import in.yunyul.prometheus.extras.AdditionalJVMExports;
+import in.yunyul.prometheus.extras.DropwizardTimerRateExports;
+import in.yunyul.vertx.console.base.WebConsoleRegistry;
+import in.yunyul.vertx.console.logging.LoggingConsolePage;
+import in.yunyul.vertx.console.metrics.MetricsConsolePage;
+import in.yunyul.vertx.console.services.ServicesConsolePage;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.dropwizard.DropwizardExports;
 import io.prometheus.client.hotspot.DefaultExports;
@@ -19,7 +24,6 @@ import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.servicediscovery.Record;
 import io.vertx.servicediscovery.ServiceDiscovery;
 import io.vertx.servicediscovery.ServiceDiscoveryOptions;
-import io.vertx.servicediscovery.rest.ServiceDiscoveryRestEndpoint;
 import io.vertx.servicediscovery.types.EventBusService;
 import io.vertx.servicediscovery.types.HttpEndpoint;
 import org.slf4j.Logger;
@@ -39,8 +43,6 @@ public class TwitterWallVerticle extends AbstractVerticle {
 
         vertx.deployVerticle(new DummyWorkerVerticle(), new DeploymentOptions().setWorker(true));
 
-        router.route("/metrics").handler(CorsHandler.create("*"));
-
         MetricRegistry dropwizardRegistry = SharedMetricRegistries.getOrCreate(
                 System.getProperty("vertx.metrics.options.registryName")
         );
@@ -49,12 +51,10 @@ public class TwitterWallVerticle extends AbstractVerticle {
         DefaultExports.initialize();
         new AdditionalJVMExports().register();
         new DropwizardTimerRateExports(dropwizardRegistry).register();
-        new LoggingHandler(router, vertx);
 
         ServiceDiscovery discovery = ServiceDiscovery.create(vertx,
                 new ServiceDiscoveryOptions()
                         .setName("twitter-wall"));
-        ServiceDiscoveryRestEndpoint.create(router, discovery);
 
         Record metricsRecord = HttpEndpoint.createRecord("prometheus-metrics", "localhost", port, "/metrics");
         discovery.publish(metricsRecord, ar -> {
@@ -63,10 +63,11 @@ public class TwitterWallVerticle extends AbstractVerticle {
             }
         });
 
-        router.route("/metrics").handler(new MetricsHandler());
-
-        router.route("/admin").handler(StaticHandler.create("adminfiles"));
-        router.route("/dist/*").handler(StaticHandler.create("adminfiles/dist"));
+        WebConsoleRegistry webConsoleRegistry = new WebConsoleRegistry("/admin");
+        webConsoleRegistry.addPage(new MetricsConsolePage(defaultRegistry));
+        webConsoleRegistry.addPage(new ServicesConsolePage(discovery));
+        webConsoleRegistry.addPage(new LoggingConsolePage());
+        webConsoleRegistry.mount(vertx, router);
 
         TweetBroadcaster broadcaster = new TweetBroadcaster(router, vertx);
         router.route("/*").handler(StaticHandler.create());
