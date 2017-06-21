@@ -59,22 +59,22 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
-            <version>3.4.1</version>
+            <version>3.4.2</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-web</artifactId>
-            <version>3.4.1</version>
+            <version>3.4.2</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-dropwizard-metrics</artifactId>
-            <version>3.4.1</version>
+            <version>3.4.2</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-service-discovery</artifactId>
-            <version>3.4.1</version>
+            <version>3.4.2</version>
         </dependency>
         <dependency>
             <groupId>org.twitter4j</groupId>
