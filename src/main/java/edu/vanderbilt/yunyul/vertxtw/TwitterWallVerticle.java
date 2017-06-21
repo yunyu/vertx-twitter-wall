@@ -11,14 +11,11 @@ import in.yunyul.vertx.console.services.ServicesConsolePage;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.dropwizard.DropwizardExports;
 import io.prometheus.client.hotspot.DefaultExports;
-import io.prometheus.client.vertx.MetricsHandler;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.http.HttpServer;
-
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.ErrorHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.servicediscovery.Record;
@@ -67,6 +64,7 @@ public class TwitterWallVerticle extends AbstractVerticle {
         webConsoleRegistry.addPage(new MetricsConsolePage(defaultRegistry));
         webConsoleRegistry.addPage(new ServicesConsolePage(discovery));
         webConsoleRegistry.addPage(new LoggingConsolePage());
+        webConsoleRegistry.setCacheBusterEnabled(true);
         webConsoleRegistry.mount(vertx, router);
 
         TweetBroadcaster broadcaster = new TweetBroadcaster(router, vertx);
