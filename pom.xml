@@ -103,11 +103,6 @@
             <version>0.0.23</version>
         </dependency>
         <dependency>
-            <groupId>com.github.yunyu</groupId>
-            <artifactId>prometheus-jvm-extras</artifactId>
-            <version>1.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.25</version>
@@ -118,24 +113,29 @@
             <version>1.2.3</version>
         </dependency>
         <dependency>
-            <groupId>in.yunyul</groupId>
+            <groupId>com.github.yunyu</groupId>
+            <artifactId>prometheus-jvm-extras</artifactId>
+            <version>1.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-base</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>2f659615b1</version>
         </dependency>
         <dependency>
-            <groupId>in.yunyul</groupId>
+            <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-services</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>2f659615b1</version>
         </dependency>
         <dependency>
-            <groupId>in.yunyul</groupId>
+            <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-logging</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>2f659615b1</version>
         </dependency>
         <dependency>
-            <groupId>in.yunyul</groupId>
+            <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-metrics</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>2f659615b1</version>
         </dependency>
     </dependencies>
 </project>
