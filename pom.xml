@@ -135,7 +135,7 @@
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-metrics</artifactId>
-            <version>3398b963ff</version>
+            <version>738ec16f96</version>
         </dependency>
     </dependencies>
 </project>
