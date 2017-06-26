@@ -2,6 +2,7 @@ package edu.vanderbilt.yunyul.vertxtw;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SharedMetricRegistries;
+import edu.vanderbilt.yunyul.vertxtw.auth.PlaintextProvider;
 import in.yunyul.prometheus.extras.AdditionalJVMExports;
 import in.yunyul.prometheus.extras.DropwizardTimerRateExports;
 import in.yunyul.vertx.console.base.WebConsoleRegistry;
@@ -15,9 +16,12 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.ErrorHandler;
 import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.ext.web.handler.UserSessionHandler;
 import io.vertx.servicediscovery.Record;
 import io.vertx.servicediscovery.ServiceDiscovery;
 import io.vertx.servicediscovery.ServiceDiscoveryOptions;
@@ -59,6 +63,10 @@ public class TwitterWallVerticle extends AbstractVerticle {
                 log("Successfully published metrics record");
             }
         });
+
+        AuthProvider authProvider = new PlaintextProvider("admin", "demo");
+        router.route().handler(UserSessionHandler.create(authProvider));
+        router.route("/admin/*").handler(BasicAuthHandler.create(authProvider, BasicAuthHandler.DEFAULT_REALM));
 
         WebConsoleRegistry webConsoleRegistry = new WebConsoleRegistry("/admin");
         webConsoleRegistry.addPage(new MetricsConsolePage(defaultRegistry));
