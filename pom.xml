@@ -120,22 +120,22 @@
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-base</artifactId>
-            <version>e37fc5f2c9</version>
+            <version>597648ff1a</version>
         </dependency>
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-services</artifactId>
-            <version>e37fc5f2c9</version>
+            <version>597648ff1a</version>
         </dependency>
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-logging</artifactId>
-            <version>e37fc5f2c9</version>
+            <version>597648ff1a</version>
         </dependency>
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-metrics</artifactId>
-            <version>e37fc5f2c9</version>
+            <version>597648ff1a</version>
         </dependency>
     </dependencies>
 </project>
