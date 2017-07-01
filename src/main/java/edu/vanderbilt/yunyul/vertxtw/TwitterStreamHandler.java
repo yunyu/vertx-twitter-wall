@@ -61,9 +61,9 @@ public class TwitterStreamHandler {
 
         searchBreaker = CircuitBreaker.create("twitter-search-breaker", vertx,
                 new CircuitBreakerOptions()
-                    .setMaxFailures(5)
-                    .setTimeout(5000)
-                    .setResetTimeout(10000));
+                        .setMaxFailures(5)
+                        .setTimeout(5000)
+                        .setResetTimeout(10000));
 
         // Twitter does not make this rate limit (stream disconnect/reconnect) information public
         // See https://dev.twitter.com/streaming/overview/connecting#rate-limiting
@@ -192,31 +192,40 @@ public class TwitterStreamHandler {
                     String queryString = orJoiner.join(tagsToSearch.stream()
                             .map(el -> "#" + el).collect(Collectors.toList()));
 
-                    searchBreaker.<List<Status>>execute(future -> {
-                        try {
-                            future.complete(getTweetsForQuery(twitterAppAuth, queryString));
-                        } catch (TwitterException e) {
-                            future.fail(e);
-                        }
-                    }).setHandler(ar -> {
-                        if (ar.succeeded()) {
-                            for (String tag : tagsToSearch) {
-                                // I could probably optimize the algorithm a bit more, but this isn't a bottleneck
-                                List<SimpleTweet> tweetsMatchingTag = ar.result().stream()
-                                        .filter(status -> {
-                                            for (HashtagEntity e : status.getHashtagEntities()) {
-                                                if (e.getText().equalsIgnoreCase(tag)) {
-                                                    return true;
-                                                }
-                                            }
-                                            return false;
-                                        }).map(SimpleTweet::new).collect(Collectors.toList());
-                                broadcaster.broadcast(tag.toLowerCase(), safeToJsonString(tweetsMatchingTag));
-                            }
-                        } else {
-                            ar.cause().printStackTrace();
-                        }
-                    });
+                    searchBreaker.<List<Status>>execute(breakerFuture ->
+                            vertx.<List<Status>>executeBlocking(future ->
+                            {
+                                try {
+                                    future.complete(getTweetsForQuery(twitterAppAuth, queryString));
+                                } catch (TwitterException e) {
+                                    future.fail(e);
+                                }
+                            }, ar -> {
+                                if (ar.succeeded()) {
+                                    breakerFuture.complete(ar.result());
+                                } else {
+                                    breakerFuture.fail(ar.cause());
+                                }
+                            }))
+                            .setHandler(ar -> {
+                                if (ar.succeeded()) {
+                                    for (String tag : tagsToSearch) {
+                                        // I could probably optimize the algorithm a bit more, but this isn't a bottleneck
+                                        List<SimpleTweet> tweetsMatchingTag = ar.result().stream()
+                                                .filter(status -> {
+                                                    for (HashtagEntity e : status.getHashtagEntities()) {
+                                                        if (e.getText().equalsIgnoreCase(tag)) {
+                                                            return true;
+                                                        }
+                                                    }
+                                                    return false;
+                                                }).map(SimpleTweet::new).collect(Collectors.toList());
+                                        broadcaster.broadcast(tag.toLowerCase(), safeToJsonString(tweetsMatchingTag));
+                                    }
+                                } else {
+                                    ar.cause().printStackTrace();
+                                }
+                            });
                 }, 0,
                 (long) (vertxConfig.getDouble("searchPeriodInSeconds", 2.0D) * 1000),
                 TimeUnit.MILLISECONDS);
