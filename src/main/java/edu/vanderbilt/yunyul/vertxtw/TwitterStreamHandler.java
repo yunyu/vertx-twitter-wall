@@ -32,6 +32,8 @@ public class TwitterStreamHandler {
     private AtomicBoolean filterUpdateQueued = new AtomicBoolean(false);
     private AtomicBoolean streamConnected = new AtomicBoolean(false);
 
+    private final Vertx vertx;
+
     // Streaming
     private final TwitterStream twitterStream;
     // Polling
@@ -43,8 +45,8 @@ public class TwitterStreamHandler {
 
     // Streaming API already uses non Vert.x thread, no need to use one for updates either
     private final ScheduledExecutorService filterUpdateThread = Executors.newSingleThreadScheduledExecutor();
+
     private final RateLimiter filterUpdateRateLimiter;
-    private final ScheduledExecutorService initialTweetThread = Executors.newSingleThreadScheduledExecutor();
     private final RateLimiter initialTweetRateLimiter;
 
     private final CircuitBreaker searchBreaker;
@@ -55,6 +57,7 @@ public class TwitterStreamHandler {
 
     public TwitterStreamHandler(Vertx vertx, JsonObject vertxConfig) {
         log("Initializing Twitter handler...");
+        this.vertx = vertx;
 
         searchBreaker = CircuitBreaker.create("twitter-search-breaker", vertx,
                 new CircuitBreakerOptions()
@@ -301,17 +304,21 @@ public class TwitterStreamHandler {
      * @param tag The hashtag to search for
      */
     public void sendInitialTweetsFor(String tag) {
-        initialTweetThread.execute(() -> {
+        vertx.<List<Status>>executeBlocking(future -> {
             initialTweetRateLimiter.acquire();
             try {
-                broadcaster.broadcast(tag,
-                        safeToJsonString(getTweetsForQuery(twitterUserAuth, "#" + tag).stream()
-                                .map(SimpleTweet::new).collect(Collectors.toList())
-                        ));
+                future.complete(getTweetsForQuery(twitterUserAuth, "#" + tag));
             } catch (TwitterException e) {
-                e.printStackTrace();
+                future.fail(e);
+            }
+        }, false, res -> {
+            if (res.succeeded()) {
+                broadcaster.broadcast(tag, safeToJsonString(
+                        res.result().stream().map(SimpleTweet::new).collect(Collectors.toList())
+                ));
+            } else {
+                res.cause().printStackTrace();
             }
         });
     }
-
 }
