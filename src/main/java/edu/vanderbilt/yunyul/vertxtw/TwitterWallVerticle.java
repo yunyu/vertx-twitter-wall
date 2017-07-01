@@ -79,7 +79,7 @@ public class TwitterWallVerticle extends AbstractVerticle {
         router.route("/*").handler(StaticHandler.create());
         router.route("/*").failureHandler(ErrorHandler.create());
 
-        TwitterStreamHandler twitterStreamHandler = new TwitterStreamHandler(config());
+        TwitterStreamHandler twitterStreamHandler = new TwitterStreamHandler(vertx, config());
         Record twitterRecord = EventBusService.createRecord(
                 "twitter-broadcast",
                 "tweet.main",
