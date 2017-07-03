@@ -2,6 +2,7 @@ package edu.vanderbilt.yunyul.vertxtw;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
+import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.ext.web.Router;
@@ -16,13 +17,18 @@ public class TweetBroadcaster {
     @Setter
     private TwitterStreamHandler twitterStreamHandler;
 
+    private final Vertx vertx;
     private final EventBus eventBus;
     private final Multiset<String> tagRegistrantCounts = HashMultiset.create();
+    private final CircuitBreaker messagePublish;
 
     public TweetBroadcaster(Router router, Vertx vertx) {
         log("Initializing broadcaster...");
 
+        this.vertx = vertx;
         this.eventBus = vertx.eventBus();
+        this.messagePublish = CircuitBreaker.create("message-publish", vertx);
+
         SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
 
         // Allow tweet broadcasts
@@ -70,6 +76,7 @@ public class TweetBroadcaster {
         }
     }
 
+
     /**
      * Broadcasts the specified message to all channels associated with the specified tag.
      *
@@ -77,6 +84,13 @@ public class TweetBroadcaster {
      * @param text The message to send
      */
     public void broadcast(String tag, String text) {
-        eventBus.publish(TWEET_PREFIX + tag, text);
+        messagePublish.execute(future -> {
+            try {
+                eventBus.publish(TWEET_PREFIX + tag, text);
+                future.complete();
+            } catch (Throwable t) {
+                future.fail(t);
+            }
+        });
     }
 }
