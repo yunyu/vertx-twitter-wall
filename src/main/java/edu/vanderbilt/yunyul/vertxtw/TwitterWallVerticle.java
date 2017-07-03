@@ -6,6 +6,7 @@ import edu.vanderbilt.yunyul.vertxtw.auth.PlaintextProvider;
 import in.yunyul.prometheus.extras.AdditionalJVMExports;
 import in.yunyul.prometheus.extras.DropwizardTimerRateExports;
 import in.yunyul.vertx.console.base.WebConsoleRegistry;
+import in.yunyul.vertx.console.circuitbreakers.CircuitBreakersConsolePage;
 import in.yunyul.vertx.console.logging.LoggingConsolePage;
 import in.yunyul.vertx.console.metrics.MetricsConsolePage;
 import in.yunyul.vertx.console.services.ServicesConsolePage;
@@ -72,6 +73,7 @@ public class TwitterWallVerticle extends AbstractVerticle {
         webConsoleRegistry.addPage(new MetricsConsolePage(defaultRegistry));
         webConsoleRegistry.addPage(new ServicesConsolePage(discovery));
         webConsoleRegistry.addPage(new LoggingConsolePage());
+        webConsoleRegistry.addPage(new CircuitBreakersConsolePage());
         webConsoleRegistry.setCacheBusterEnabled(true);
         webConsoleRegistry.mount(vertx, router);
 
