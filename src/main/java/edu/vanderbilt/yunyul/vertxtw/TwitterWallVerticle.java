@@ -69,6 +69,8 @@ public class TwitterWallVerticle extends AbstractVerticle {
         router.route("/admin/*").handler(UserSessionHandler.create(authProvider));
         router.route("/admin/*").handler(BasicAuthHandler.create(authProvider, BasicAuthHandler.DEFAULT_REALM));
 
+        new TestCircuitBreakers(vertx);
+
         WebConsoleRegistry webConsoleRegistry = new WebConsoleRegistry("/admin");
         webConsoleRegistry.addPage(new MetricsConsolePage(defaultRegistry));
         webConsoleRegistry.addPage(new ServicesConsolePage(discovery));
