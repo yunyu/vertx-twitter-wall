@@ -8,12 +8,12 @@ public class TestCircuitBreakers {
     public TestCircuitBreakers(Vertx vertx) {
         CircuitBreaker alwaysFailBreaker = CircuitBreaker.create("twitter-legacy-api", vertx,
                 new CircuitBreakerOptions().setMaxFailures(1).setResetTimeout(50000));
-        vertx.setPeriodic(1000, id -> alwaysFailBreaker.execute(future -> future.fail(new IllegalStateException())));
+        vertx.setPeriodic(997, id -> alwaysFailBreaker.execute(future -> future.fail(new IllegalStateException())));
 
         CircuitBreaker occasionallyHalfOpenBreaker = CircuitBreaker.create("rng-api", vertx,
                 new CircuitBreakerOptions().setMaxFailures(1).setResetTimeout(100));
         final boolean[] currState = {true};
-        vertx.setPeriodic(5000, id -> occasionallyHalfOpenBreaker.execute(future -> {
+        vertx.setPeriodic(7919, id -> occasionallyHalfOpenBreaker.execute(future -> {
             if (currState[0]) {
                 future.complete();
             } else {

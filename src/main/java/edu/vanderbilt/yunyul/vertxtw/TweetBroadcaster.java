@@ -3,6 +3,7 @@ package edu.vanderbilt.yunyul.vertxtw;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import io.vertx.circuitbreaker.CircuitBreaker;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.ext.web.Router;
@@ -37,10 +38,13 @@ public class TweetBroadcaster {
                 // No incoming messages permitted
                 .addOutboundPermitted(tweetPermitted);
 
+        CircuitBreaker registrationBreaker = CircuitBreaker.create("stream-registration", vertx);
+
         // Filter registrations and handle un-registrations
         sockJSHandler.bridge(options, be -> {
             if (be.type() == BridgeEventType.REGISTER) {
                 String tag = getHashtag(be);
+                registrationBreaker.execute(Future::complete);
                 if (tag != null && twitterStreamHandler.trackTag(tag)) {
                     twitterStreamHandler.sendInitialTweetsFor(tag);
                     tagRegistrantCounts.add(tag);
@@ -75,7 +79,6 @@ public class TweetBroadcaster {
             return null;
         }
     }
-
 
     /**
      * Broadcasts the specified message to all channels associated with the specified tag.
