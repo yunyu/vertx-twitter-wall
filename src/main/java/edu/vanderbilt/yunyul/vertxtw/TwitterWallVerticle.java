@@ -10,6 +10,7 @@ import in.yunyul.vertx.console.circuitbreakers.CircuitBreakersConsolePage;
 import in.yunyul.vertx.console.logging.LoggingConsolePage;
 import in.yunyul.vertx.console.metrics.MetricsConsolePage;
 import in.yunyul.vertx.console.services.ServicesConsolePage;
+import in.yunyul.vertx.console.shell.ShellConsolePage;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.dropwizard.DropwizardExports;
 import io.prometheus.client.hotspot.DefaultExports;
@@ -71,13 +72,14 @@ public class TwitterWallVerticle extends AbstractVerticle {
 
         new TestCircuitBreakers(vertx);
 
-        WebConsoleRegistry webConsoleRegistry = new WebConsoleRegistry("/admin");
-        webConsoleRegistry.addPage(new MetricsConsolePage(defaultRegistry));
-        webConsoleRegistry.addPage(new ServicesConsolePage(discovery));
-        webConsoleRegistry.addPage(new LoggingConsolePage());
-        webConsoleRegistry.addPage(new CircuitBreakersConsolePage());
-        webConsoleRegistry.setCacheBusterEnabled(true);
-        webConsoleRegistry.mount(vertx, router);
+        WebConsoleRegistry.create("/admin")
+                .addPage(new MetricsConsolePage(defaultRegistry))
+                .addPage(new ServicesConsolePage(discovery))
+                .addPage(new LoggingConsolePage())
+                .addPage(new CircuitBreakersConsolePage())
+                .addPage(new ShellConsolePage())
+                .setCacheBusterEnabled(true)
+                .mount(vertx, router);
 
         TweetBroadcaster broadcaster = new TweetBroadcaster(router, vertx);
         router.route("/*").handler(StaticHandler.create());
@@ -106,6 +108,7 @@ public class TwitterWallVerticle extends AbstractVerticle {
 
     /**
      * Logs a message to the global logger
+     *
      * @param msg The message to log
      */
     public static void log(String msg) {
