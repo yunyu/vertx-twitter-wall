@@ -73,11 +73,11 @@ public class TwitterWallVerticle extends AbstractVerticle {
         new TestCircuitBreakers(vertx);
 
         WebConsoleRegistry.create("/admin")
-                .addPage(new MetricsConsolePage(defaultRegistry))
-                .addPage(new ServicesConsolePage(discovery))
-                .addPage(new LoggingConsolePage())
-                .addPage(new CircuitBreakersConsolePage())
-                .addPage(new ShellConsolePage())
+                .addPage(MetricsConsolePage.create(defaultRegistry))
+                .addPage(ServicesConsolePage.create(discovery))
+                .addPage(LoggingConsolePage.create())
+                .addPage(CircuitBreakersConsolePage.create())
+                .addPage(ShellConsolePage.create())
                 .setCacheBusterEnabled(true)
                 .mount(vertx, router);
 

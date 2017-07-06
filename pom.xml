@@ -130,32 +130,32 @@
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-base</artifactId>
-            <version>7c4e0a4c51</version>
+            <version>5113d9e95b</version>
         </dependency>
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-services</artifactId>
-            <version>7c4e0a4c51</version>
+            <version>5113d9e95b</version>
         </dependency>
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-logging</artifactId>
-            <version>7c4e0a4c51</version>
+            <version>5113d9e95b</version>
         </dependency>
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-metrics</artifactId>
-            <version>7c4e0a4c51</version>
+            <version>5113d9e95b</version>
         </dependency>
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-circuit-breakers</artifactId>
-            <version>7c4e0a4c51</version>
+            <version>5113d9e95b</version>
         </dependency>
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-shell</artifactId>
-            <version>7c4e0a4c51</version>
+            <version>5113d9e95b</version>
         </dependency>
     </dependencies>
 </project>
