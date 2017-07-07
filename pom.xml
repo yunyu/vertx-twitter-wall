@@ -56,6 +56,7 @@
     </build>
 
     <properties>
+        <vertx.version>3.4.2</vertx.version>
         <vertx.console.version>3d86b6e61f</vertx.console.version>
     </properties>
 
@@ -63,32 +64,32 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
-            <version>3.4.2</version>
+            <version>${vertx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-web</artifactId>
-            <version>3.4.2</version>
+            <version>${vertx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-dropwizard-metrics</artifactId>
-            <version>3.4.2</version>
+            <version>${vertx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-service-discovery</artifactId>
-            <version>3.4.2</version>
+            <version>${vertx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-circuit-breaker</artifactId>
-            <version>3.4.2</version>
+            <version>${vertx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-shell</artifactId>
-            <version>3.4.2</version>
+            <version>${vertx.version}</version>
         </dependency>
         <dependency>
             <groupId>org.twitter4j</groupId>
