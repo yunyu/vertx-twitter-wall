@@ -56,7 +56,7 @@
     </build>
 
     <properties>
-        <vertx.console.version>2b3c14355d</vertx.console.version>
+        <vertx.console.version>e298de77ea</vertx.console.version>
     </properties>
 
     <dependencies>
@@ -134,7 +134,7 @@
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-base</artifactId>
-            <version>8eceb990c9</version>
+            <version>${vertx.console.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>

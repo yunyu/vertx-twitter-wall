@@ -72,7 +72,7 @@ public class TwitterWallVerticle extends AbstractVerticle {
 
         new TestCircuitBreakers(vertx);
 
-        WebConsoleRegistry webConsole = WebConsoleRegistry.create("/admin")
+        WebConsoleRegistry.create("/admin")
                 .addPage(MetricsConsolePage.create(defaultRegistry))
                 .addPage(ServicesConsolePage.create(discovery))
                 .addPage(LoggingConsolePage.create())
