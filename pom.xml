@@ -55,6 +55,10 @@
         </plugins>
     </build>
 
+    <properties>
+        <vertx.console.version>2b3c14355d</vertx.console.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>io.vertx</groupId>
@@ -135,27 +139,27 @@
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-services</artifactId>
-            <version>8eceb990c9</version>
+            <version>${vertx.console.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-logging</artifactId>
-            <version>8eceb990c9</version>
+            <version>${vertx.console.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-metrics</artifactId>
-            <version>8eceb990c9</version>
+            <version>${vertx.console.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-circuit-breakers</artifactId>
-            <version>8eceb990c9</version>
+            <version>${vertx.console.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-shell</artifactId>
-            <version>8eceb990c9</version>
+            <version>${vertx.console.version}</version>
         </dependency>
     </dependencies>
 </project>
