@@ -18,7 +18,11 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.shell.ShellService;
+import io.vertx.ext.shell.ShellServiceOptions;
+import io.vertx.ext.shell.term.HttpTermOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.ErrorHandler;
@@ -71,6 +75,15 @@ public class TwitterWallVerticle extends AbstractVerticle {
         router.route("/admin/*").handler(BasicAuthHandler.create(authProvider, BasicAuthHandler.DEFAULT_REALM));
 
         new TestCircuitBreakers(vertx);
+
+        ShellService service = ShellService.create(vertx,
+                new ShellServiceOptions().setHttpOptions(
+                        new HttpTermOptions().
+                                setHost("localhost").
+                                setPort(9001)
+                )
+        );
+        service.start();
 
         WebConsoleRegistry.create("/admin")
                 .addPage(MetricsConsolePage.create(defaultRegistry))

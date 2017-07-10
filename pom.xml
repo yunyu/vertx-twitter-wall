@@ -57,7 +57,7 @@
 
     <properties>
         <vertx.version>3.4.2</vertx.version>
-        <vertx.console.version>3d86b6e61f</vertx.console.version>
+        <vertx.console.version>886516c597</vertx.console.version>
     </properties>
 
     <dependencies>
@@ -89,7 +89,7 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-shell</artifactId>
-            <version>${vertx.version}</version>
+            <version>3.5.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.twitter4j</groupId>
