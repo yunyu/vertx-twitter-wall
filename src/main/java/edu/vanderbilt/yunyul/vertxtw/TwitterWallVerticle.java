@@ -7,6 +7,7 @@ import in.yunyul.prometheus.extras.AdditionalJVMExports;
 import in.yunyul.prometheus.extras.DropwizardTimerRateExports;
 import in.yunyul.vertx.console.base.WebConsoleRegistry;
 import in.yunyul.vertx.console.circuitbreakers.CircuitBreakersConsolePage;
+import in.yunyul.vertx.console.health.HealthConsolePage;
 import in.yunyul.vertx.console.logging.LoggingConsolePage;
 import in.yunyul.vertx.console.metrics.MetricsConsolePage;
 import in.yunyul.vertx.console.services.ServicesConsolePage;
@@ -18,7 +19,10 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.healthchecks.HealthChecks;
+import io.vertx.ext.healthchecks.Status;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.ErrorHandler;
@@ -31,6 +35,8 @@ import io.vertx.servicediscovery.types.EventBusService;
 import io.vertx.servicediscovery.types.HttpEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 public class TwitterWallVerticle extends AbstractVerticle {
     private static final Logger logger = LoggerFactory.getLogger(TwitterWallVerticle.class);
@@ -72,12 +78,24 @@ public class TwitterWallVerticle extends AbstractVerticle {
 
         new TestCircuitBreakers(vertx);
 
+        HealthChecks healthChecks = HealthChecks.create(vertx);
+        healthChecks.register("application-responding", fut -> fut.complete(Status.OK()));
+        healthChecks.register("sanity-maintained", fut -> fut.complete(Status.KO(new JsonObject().put("level", 0.02))));
+        healthChecks.register("coin-flip-is-heads", fut -> {
+           if (ThreadLocalRandom.current().nextBoolean()) {
+               fut.complete(Status.OK());
+           } else {
+               fut.complete(Status.KO());
+           }
+        });
+
         WebConsoleRegistry.create("/admin")
                 .addPage(MetricsConsolePage.create(defaultRegistry))
                 .addPage(ServicesConsolePage.create(discovery))
                 .addPage(LoggingConsolePage.create())
                 .addPage(CircuitBreakersConsolePage.create())
                 .addPage(ShellConsolePage.create())
+                .addPage(HealthConsolePage.create(healthChecks))
                 .setCacheBusterEnabled(true)
                 .mount(vertx, router);
 

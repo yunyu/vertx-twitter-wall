@@ -57,7 +57,7 @@
 
     <properties>
         <vertx.version>3.4.2</vertx.version>
-        <vertx.console.version>3d86b6e61f</vertx.console.version>
+        <vertx.console.version>6b674e274f</vertx.console.version>
     </properties>
 
     <dependencies>
@@ -89,6 +89,11 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-shell</artifactId>
+            <version>${vertx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-health-check</artifactId>
             <version>${vertx.version}</version>
         </dependency>
         <dependency>
@@ -160,6 +165,11 @@
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-shell</artifactId>
+            <version>${vertx.console.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.yunyu.vertx-console</groupId>
+            <artifactId>vertx-console-health</artifactId>
             <version>${vertx.console.version}</version>
         </dependency>
     </dependencies>
