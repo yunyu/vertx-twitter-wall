@@ -78,16 +78,7 @@ public class TwitterWallVerticle extends AbstractVerticle {
 
         new TestCircuitBreakers(vertx);
 
-        HealthChecks healthChecks = HealthChecks.create(vertx);
-        healthChecks.register("application-responding", fut -> fut.complete(Status.OK()));
-        healthChecks.register("sanity-maintained", fut -> fut.complete(Status.KO(new JsonObject().put("level", 0.02))));
-        healthChecks.register("coin-flip-is-heads", fut -> {
-           if (ThreadLocalRandom.current().nextBoolean()) {
-               fut.complete(Status.OK());
-           } else {
-               fut.complete(Status.KO());
-           }
-        });
+        HealthChecks healthChecks = TestHealthChecks.produceHealthChecks(vertx);
 
         WebConsoleRegistry.create("/admin")
                 .addPage(MetricsConsolePage.create(defaultRegistry))
