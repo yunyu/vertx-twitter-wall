@@ -57,7 +57,7 @@
 
     <properties>
         <vertx.version>3.4.2</vertx.version>
-        <vertx.console.version>6b674e274f</vertx.console.version>
+        <vertx.console.version>d026d3e3a0</vertx.console.version>
     </properties>
 
     <dependencies>
