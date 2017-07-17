@@ -3,8 +3,6 @@ package edu.vanderbilt.yunyul.vertxtw;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SharedMetricRegistries;
 import edu.vanderbilt.yunyul.vertxtw.auth.PlaintextProvider;
-import in.yunyul.prometheus.extras.AdditionalJVMExports;
-import in.yunyul.prometheus.extras.DropwizardTimerRateExports;
 import in.yunyul.vertx.console.base.WebConsoleRegistry;
 import in.yunyul.vertx.console.circuitbreakers.CircuitBreakersConsolePage;
 import in.yunyul.vertx.console.health.HealthConsolePage;
@@ -12,17 +10,12 @@ import in.yunyul.vertx.console.logging.LoggingConsolePage;
 import in.yunyul.vertx.console.metrics.MetricsConsolePage;
 import in.yunyul.vertx.console.services.ServicesConsolePage;
 import in.yunyul.vertx.console.shell.ShellConsolePage;
-import io.prometheus.client.CollectorRegistry;
-import io.prometheus.client.dropwizard.DropwizardExports;
-import io.prometheus.client.hotspot.DefaultExports;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.healthchecks.HealthChecks;
-import io.vertx.ext.healthchecks.Status;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.ErrorHandler;
@@ -35,8 +28,6 @@ import io.vertx.servicediscovery.types.EventBusService;
 import io.vertx.servicediscovery.types.HttpEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.ThreadLocalRandom;
 
 public class TwitterWallVerticle extends AbstractVerticle {
     private static final Logger logger = LoggerFactory.getLogger(TwitterWallVerticle.class);
@@ -55,11 +46,6 @@ public class TwitterWallVerticle extends AbstractVerticle {
         MetricRegistry dropwizardRegistry = SharedMetricRegistries.getOrCreate(
                 System.getProperty("vertx.metrics.options.registryName")
         );
-        CollectorRegistry defaultRegistry = CollectorRegistry.defaultRegistry;
-        defaultRegistry.register(new DropwizardExports(dropwizardRegistry));
-        DefaultExports.initialize();
-        new AdditionalJVMExports().register();
-        new DropwizardTimerRateExports(dropwizardRegistry).register();
 
         ServiceDiscovery discovery = ServiceDiscovery.create(vertx,
                 new ServiceDiscoveryOptions()
@@ -81,7 +67,7 @@ public class TwitterWallVerticle extends AbstractVerticle {
         HealthChecks healthChecks = TestHealthChecks.produceHealthChecks(vertx);
 
         WebConsoleRegistry.create("/admin")
-                .addPage(MetricsConsolePage.create(defaultRegistry))
+                .addPage(MetricsConsolePage.create(dropwizardRegistry))
                 .addPage(ServicesConsolePage.create(discovery))
                 .addPage(LoggingConsolePage.create())
                 .addPage(CircuitBreakersConsolePage.create())
