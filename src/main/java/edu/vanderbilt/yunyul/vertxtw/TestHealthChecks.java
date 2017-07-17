@@ -11,7 +11,9 @@ public class TestHealthChecks {
     public static HealthChecks produceHealthChecks(Vertx vertx) {
         HealthChecks healthChecks = HealthChecks.create(vertx);
         healthChecks.register("networking/network-available", fut -> fut.complete(Status.OK()));
-        healthChecks.register("networking/epoll-available", fut -> fut.complete(Status.KO(new JsonObject().put("level", 0.02))));
+        healthChecks.register("networking/epoll-available", fut -> fut.complete(Status.KO(
+                new JsonObject().put("level", ThreadLocalRandom.current().nextInt(100) * 0.01)
+        )));
         healthChecks.register("random-is-working", fut -> {
             if (ThreadLocalRandom.current().nextBoolean()) {
                 fut.complete(Status.OK());
