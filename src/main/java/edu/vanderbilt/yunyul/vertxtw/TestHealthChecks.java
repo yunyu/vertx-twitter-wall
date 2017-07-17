@@ -21,6 +21,7 @@ public class TestHealthChecks {
                 fut.complete(Status.KO());
             }
         });
+        healthChecks.register("timeout-check", fut -> {});
         return healthChecks;
     }
 }
