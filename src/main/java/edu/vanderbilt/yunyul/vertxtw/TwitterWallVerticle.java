@@ -8,13 +8,16 @@ import in.yunyul.vertx.console.circuitbreakers.CircuitBreakersConsolePage;
 import in.yunyul.vertx.console.health.HealthConsolePage;
 import in.yunyul.vertx.console.logging.LoggingConsolePage;
 import in.yunyul.vertx.console.metrics.MetricsConsolePage;
+import in.yunyul.vertx.console.pools.PoolsConsolePage;
 import in.yunyul.vertx.console.services.ServicesConsolePage;
 import in.yunyul.vertx.console.shell.ShellConsolePage;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.dropwizard.MetricsService;
 import io.vertx.ext.healthchecks.HealthChecks;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BasicAuthHandler;
@@ -28,6 +31,8 @@ import io.vertx.servicediscovery.types.EventBusService;
 import io.vertx.servicediscovery.types.HttpEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 public class TwitterWallVerticle extends AbstractVerticle {
     private static final Logger logger = LoggerFactory.getLogger(TwitterWallVerticle.class);
@@ -65,6 +70,17 @@ public class TwitterWallVerticle extends AbstractVerticle {
         new TestCircuitBreakers(vertx);
 
         HealthChecks healthChecks = TestHealthChecks.produceHealthChecks(vertx);
+        MetricsService metricsService = MetricsService.create(vertx);
+
+        WorkerExecutor executor = vertx.createSharedWorkerExecutor("high-load-pool", 50);
+        vertx.setPeriodic(500L, id -> executor.executeBlocking(fut -> {
+            try {
+                Thread.sleep(10000L + ThreadLocalRandom.current().nextLong(10000L));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            fut.complete();
+        }, false, null));
 
         WebConsoleRegistry.create("/admin")
                 .addPage(MetricsConsolePage.create(dropwizardRegistry))
@@ -73,6 +89,7 @@ public class TwitterWallVerticle extends AbstractVerticle {
                 .addPage(CircuitBreakersConsolePage.create())
                 .addPage(ShellConsolePage.create())
                 .addPage(HealthConsolePage.create(healthChecks))
+                .addPage(PoolsConsolePage.create(metricsService))
                 .setCacheBusterEnabled(true)
                 .mount(vertx, router);
 

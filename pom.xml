@@ -57,7 +57,7 @@
 
     <properties>
         <vertx.version>3.4.2</vertx.version>
-        <vertx.console.version>9c91075ce5</vertx.console.version>
+        <vertx.console.version>6b130856c6</vertx.console.version>
     </properties>
 
     <dependencies>
@@ -170,6 +170,11 @@
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-health</artifactId>
+            <version>${vertx.console.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.yunyu.vertx-console</groupId>
+            <artifactId>vertx-console-pools</artifactId>
             <version>${vertx.console.version}</version>
         </dependency>
     </dependencies>
