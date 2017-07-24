@@ -6,5 +6,6 @@
   "port": 8080,
   "filterUpdateRateLimit": 0.3,
   "initialTweetRateLimit": 0.2,
-  "searchPeriodInSeconds": 2.0
+  "searchPeriodInSeconds": 2.0,
+  "csrfSecret": "RANDOM_STRING_HERE"
 }

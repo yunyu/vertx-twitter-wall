@@ -20,10 +20,8 @@ import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.dropwizard.MetricsService;
 import io.vertx.ext.healthchecks.HealthChecks;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.BasicAuthHandler;
-import io.vertx.ext.web.handler.ErrorHandler;
-import io.vertx.ext.web.handler.StaticHandler;
-import io.vertx.ext.web.handler.UserSessionHandler;
+import io.vertx.ext.web.handler.*;
+import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.servicediscovery.Record;
 import io.vertx.servicediscovery.ServiceDiscovery;
 import io.vertx.servicediscovery.ServiceDiscoveryOptions;
@@ -63,9 +61,18 @@ public class TwitterWallVerticle extends AbstractVerticle {
             }
         });
 
+        // Session for all routes
+        router.route().handler(CookieHandler.create());
+        router.route().handler(SessionHandler
+                .create(LocalSessionStore.create(vertx))
+                .setCookieSecureFlag(true)
+        );
+        // Secure /admin route
+        String adminRoute = "/admin/*";
         AuthProvider authProvider = new PlaintextProvider("admin", "demo");
-        router.route("/admin/*").handler(UserSessionHandler.create(authProvider));
-        router.route("/admin/*").handler(BasicAuthHandler.create(authProvider, BasicAuthHandler.DEFAULT_REALM));
+        router.route(adminRoute).handler(UserSessionHandler.create(authProvider));
+        router.route(adminRoute).handler(BasicAuthHandler.create(authProvider, BasicAuthHandler.DEFAULT_REALM));
+        router.route(adminRoute).handler(CSRFHandler.create(config().getString("csrfSecret")));
 
         new TestCircuitBreakers(vertx);
 
@@ -81,6 +88,7 @@ public class TwitterWallVerticle extends AbstractVerticle {
             }
             fut.complete();
         }, false, null));
+
 
         WebConsoleRegistry.create("/admin")
                 .addPage(MetricsConsolePage.create(dropwizardRegistry))
