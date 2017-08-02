@@ -31,7 +31,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>io.vertx.core.Launcher</mainClass>
+                            <mainClass>edu.vanderbilt.yunyul.vertxtw.TwitterWallLauncher</mainClass>
                         </manifest>
                         <manifestEntries>
                             <Main-Verticle>edu.vanderbilt.yunyul.vertxtw.TwitterWallVerticle</Main-Verticle>
@@ -175,6 +175,16 @@
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
             <artifactId>vertx-console-pools</artifactId>
+            <version>${vertx.console.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.yunyu.vertx-console</groupId>
+            <artifactId>vertx-console-eventbus</artifactId>
+            <version>${vertx.console.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.yunyu.vertx-console</groupId>
+            <artifactId>vertx-console-http-clients</artifactId>
             <version>${vertx.console.version}</version>
         </dependency>
     </dependencies>

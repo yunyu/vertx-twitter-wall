@@ -5,7 +5,9 @@ import com.codahale.metrics.SharedMetricRegistries;
 import edu.vanderbilt.yunyul.vertxtw.auth.PlaintextProvider;
 import in.yunyul.vertx.console.base.WebConsoleRegistry;
 import in.yunyul.vertx.console.circuitbreakers.CircuitBreakersConsolePage;
+import in.yunyul.vertx.console.eventbus.EventBusConsolePage;
 import in.yunyul.vertx.console.health.HealthConsolePage;
+import in.yunyul.vertx.console.httpclients.HttpClientsConsolePage;
 import in.yunyul.vertx.console.logging.LoggingConsolePage;
 import in.yunyul.vertx.console.metrics.MetricsConsolePage;
 import in.yunyul.vertx.console.pools.PoolsConsolePage;
@@ -98,6 +100,8 @@ public class TwitterWallVerticle extends AbstractVerticle {
                 .addPage(ShellConsolePage.create())
                 .addPage(HealthConsolePage.create(healthChecks))
                 .addPage(PoolsConsolePage.create(metricsService))
+                .addPage(EventBusConsolePage.create(metricsService))
+                .addPage(HttpClientsConsolePage.create(metricsService))
                 .setCacheBusterEnabled(true)
                 .mount(vertx, router);
 
