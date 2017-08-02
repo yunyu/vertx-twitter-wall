@@ -3,6 +3,9 @@ package edu.vanderbilt.yunyul.vertxtw;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpClient;
+
+import static edu.vanderbilt.yunyul.vertxtw.TwitterWallVerticle.log;
 
 public class TestCircuitBreakers {
     public TestCircuitBreakers(Vertx vertx) {
@@ -21,5 +24,13 @@ public class TestCircuitBreakers {
             }
             currState[0] = !currState[0];
         }));
+
+        vertx.setPeriodic(5000, id -> {
+            HttpClient httpClient = vertx.createHttpClient();
+            httpClient.getNow("yunyul.in", "/resume.pdf", response -> {
+                log("Received response with status code " + response.statusCode());
+            });
+
+        });
     }
 }
