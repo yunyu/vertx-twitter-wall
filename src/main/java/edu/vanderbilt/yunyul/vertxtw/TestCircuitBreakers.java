@@ -25,12 +25,24 @@ public class TestCircuitBreakers {
             currState[0] = !currState[0];
         }));
 
+        HttpClient httpClient = vertx.createHttpClient();
+
         vertx.setPeriodic(5000, id -> {
-            HttpClient httpClient = vertx.createHttpClient();
             httpClient.getNow("yunyul.in", "/resume.pdf", response -> {
                 log("Received response with status code " + response.statusCode());
             });
+        });
 
+        vertx.setPeriodic(2500, id -> {
+            httpClient.getNow("www.google.com", "/robots.txt", response -> {
+                log("Received response with status code " + response.statusCode());
+            });
+        });
+
+        vertx.setPeriodic(7500, id -> {
+            httpClient.getNow("vertx.io", "/notfound", response -> {
+                log("Received response with status code " + response.statusCode());
+            });
         });
     }
 }
