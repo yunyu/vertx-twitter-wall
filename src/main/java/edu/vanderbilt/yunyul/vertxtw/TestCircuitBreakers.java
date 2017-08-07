@@ -4,6 +4,8 @@ import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpVersion;
 
 import static edu.vanderbilt.yunyul.vertxtw.TwitterWallVerticle.log;
 
@@ -27,22 +29,34 @@ public class TestCircuitBreakers {
 
         HttpClient httpClient = vertx.createHttpClient();
 
-        vertx.setPeriodic(5000, id -> {
-            httpClient.getNow("yunyul.in", "/resume.pdf", response -> {
-                log("Received response with status code " + response.statusCode());
-            });
-        });
+        vertx.setPeriodic(5000, id -> httpClient.getNow("yunyul.in", "/resume.pdf", response -> {
+            log("Received response with status code " + response.statusCode());
+        }));
 
-        vertx.setPeriodic(2500, id -> {
-            httpClient.getNow("www.google.com", "/robots.txt", response -> {
-                log("Received response with status code " + response.statusCode());
-            });
-        });
+        vertx.setPeriodic(2500, id -> httpClient.getNow("www.google.com", "/robots.txt", response -> {
+            log("Received response with status code " + response.statusCode());
+        }));
 
-        vertx.setPeriodic(7500, id -> {
-            httpClient.getNow("vertx.io", "/notfound", response -> {
-                log("Received response with status code " + response.statusCode());
-            });
-        });
+        vertx.setPeriodic(7500, id -> httpClient.getNow("vertx.io", "/notfound", response -> {
+            log("Received response with status code " + response.statusCode());
+        }));
+
+        HttpClient httpClient2 = vertx.createHttpClient(new HttpClientOptions().
+                setMetricsName("named-client")
+                .setProtocolVersion(HttpVersion.HTTP_2)
+                .setSsl(true)
+                .setTrustAll(true)
+        );
+
+        vertx.setPeriodic(3000, id -> httpClient2.getNow(443, "news.vanderbilt.edu", "/section/releases/feed/", response -> {
+                    log("Received response with status code " + response.statusCode());
+                })
+        );
+
+        vertx.setPeriodic(5000, id -> httpClient2.getNow(443, "en.wikipedia.org", "/w/index.php?title=Special:NewPages&feed=rss", response -> {
+                    log("Received response with status code " + response.statusCode());
+                })
+        );
+
     }
 }
