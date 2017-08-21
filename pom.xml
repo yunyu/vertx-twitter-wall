@@ -57,7 +57,7 @@
 
     <properties>
         <vertx.version>3.4.2</vertx.version>
-        <vertx.console.version>cdb5220c25</vertx.console.version>
+        <vertx.console.version>cf6a1edc80</vertx.console.version>
     </properties>
 
     <dependencies>
@@ -135,7 +135,7 @@
         <dependency>
             <groupId>com.github.yunyu</groupId>
             <artifactId>prometheus-jvm-extras</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>1.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.github.yunyu.vertx-console</groupId>
