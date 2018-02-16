@@ -44,6 +44,7 @@ public class TestCircuitBreakers {
         HttpClient httpClient2 = vertx.createHttpClient(new HttpClientOptions().
                 setMetricsName("named-client")
                 .setProtocolVersion(HttpVersion.HTTP_2)
+                .setUseAlpn(true)
                 .setSsl(true)
                 .setTrustAll(true)
         );
